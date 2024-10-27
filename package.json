@@ -1,0 +1,40 @@
+{
+  "name": "spdl",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A Spotify downloader written in pure Javascript.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PwLDev/node-spdl.git"
+  },
+  "keywords": [
+    "spdl",
+    "spotify-stream",
+    "spotify-downloader",
+    "spotify",
+    "spdl-core"
+  ],
+  "author": "PwLDev",
+  "contributors": [
+    "Valen7440",
+    "ale057j0825"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PwLDev/node-spdl/issues"
+  },
+  "homepage": "https://github.com/PwLDev/node-spdl#readme",
+  "files": ["dist"],
+  "dependencies": {
+    "spotify-web-api-node": "^5.0.2",
+    "typescript": "^5.6.3",
+    "undici": "^6.20.1"
+  },
+  "devDependencies": {
+    "@types/spotify-web-api-node": "^5.0.11"
+  }
+}
