@@ -3,12 +3,12 @@ A module to download tracks and videos from Spotify, directly from Spotify's ser
 For Javascripters and Typescripters.
 
 <div align="center">
-    <img src="https://cdn.discordapp.com/attachments/1091932806206201857/1299999869057892405/NodeSpdl.png?ex=67233339&is=6721e1b9&hm=e1a99ad53790f3767599516e6696d5f94f68a6a7bd866f2dd26a626dd58993de&" alt="node-spdl graphic">
+    <img src="https://cdn.discordapp.com/attachments/1091932806206201857/1306323801700700212/NodeSpdl.png?ex=67364058&is=6734eed8&hm=6ee94ff12bc28bf4e7fbf8f552751a06417e32f5cc725f2fe10f3c6291278440&" alt="node-spdl graphic">
 </div>
 
 > [!WARNING]
-> I am not responsible for any legal issues, account loss for using this package.
-> Use it at your own risk!
+> There is no guarantee your account will not be lost or taken down for using this package.
+> So use it at your own risk!
 
 ## Features
 - Download music tracks in AAC or Vorbis.
