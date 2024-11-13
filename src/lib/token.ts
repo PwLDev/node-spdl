@@ -1,14 +1,21 @@
 import { request } from "undici";
 
-export class Token {
-    accessToken?: string;
-    cookie?: string;
+export class SpdlAuth {
+    accessToken: string = "";
+    expirationTime: string = "";
+    
+    cookie: string;
 
-    constructor(cookie?: string) {
+    constructor(cookie: string) {
+        if (!cookie || !cookie.length) {
+            throw new Error("You must provide a valid sp_dc cookie to get a token.");
+        }
+
         this.cookie = cookie;
+        this.refresh();
     }
 
-    async refresh(): Promise<string> {
+    async refresh(): Promise<void> {
         const tokenRequest = await request(
             "https://open.spotify.com/get_access_token?reason=transport&productType=webplayer",
             {
@@ -19,7 +26,7 @@ export class Token {
                     "Accept-Language": "en",
                     "App-Platform": "WebPlayer",
                     "Connection": "keep-alive",
-                    "Cookie": `sp_dc=${this.cookie || ""}`,
+                    "Cookie": `sp_dc=${this.cookie}`,
                     "Host": "open.spotify.com",
                     "Sec-Fetch-Dest": "empty",
                     "Sec-Fetch-Mode": "cors",
@@ -34,6 +41,12 @@ export class Token {
         const response: any = await tokenRequest.body.json();
         const isAnonymous = response["isAnonymous"];
 
-        return response;
+        if (isAnonymous) {
+            throw new Error("You must provide a valid sp_dc cookie from a Spotify logged in browser.\nRefer to https://github.com/PwLDev/node-spdl#readme to see how to extract a cookie.");
+            return;
+        }
+
+        this.accessToken = response["accessToken"];
+
     }
 }

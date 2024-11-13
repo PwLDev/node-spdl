@@ -1,1 +1,1 @@
-import { SpdlClient } from "./lib/client";
+import { SpdlApi } from "./lib/api";
