@@ -1,5 +1,6 @@
 # node-spdl
-A module to download tracks and videos from Spotify, directly from Spotify's servers written in Javascript.
+A module to download tracks and videos from Spotify, directly from Spotify's servers written in Typescript.
+For Javascripters and Typescripters.
 
 <div align="center">
     <img src="https://cdn.discordapp.com/attachments/1091932806206201857/1299999869057892405/NodeSpdl.png?ex=67233339&is=6721e1b9&hm=e1a99ad53790f3767599516e6696d5f94f68a6a7bd866f2dd26a626dd58993de&" alt="node-spdl graphic">
