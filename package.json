@@ -2,7 +2,7 @@
   "name": "spdl",
   "version": "1.0.0",
   "type": "module",
-  "description": "A Spotify downloader written in pure Javascript.",
+  "description": "A Spotify content downloader written in Typescript.",
   "main": "src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -35,11 +35,9 @@
     "@types/node": "^22.9.0",
     "fluent-ffmpeg": "^2.1.3",
     "node-id3": "^0.2.6",
-    "spotify-web-api-node": "^5.0.2",
     "undici": "^6.20.1"
   },
   "devDependencies": {
-    "@types/spotify-web-api-node": "^5.0.11",
     "typescript": "^5.6.3"
   }
 }
