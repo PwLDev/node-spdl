@@ -84,15 +84,6 @@ Note that **<u>this package sticks to what Spotify natively provides</u>** from 
 
 > The default extension format for Vorbis is **.ogg**, and for AAC is **.m4a**. However this package can auto convert these extensions to **.mp3** using **FFmpeg**.
 
-### Video
-
-> <u>Videos can only be downloaded with a Spotify Premium account.</u>
-
-| Keyword | Format  | Codec  |
-|:-------:|:-------:|:------:|
-|         | Webm    | H.264  |
-|         | MP4     | H.264  |
-
 ## Disclaimer
 
 This package doesn't ensure your Spotify account won't be taken down. 

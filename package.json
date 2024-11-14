@@ -15,12 +15,13 @@
     "spdl",
     "spotify-stream",
     "spotify-downloader",
+    "spotify-download",
+    "spotify-dl",
     "spotify",
     "spdl-core"
   ],
   "author": "PwLDev",
   "contributors": [
-    "Valen7440",
     "ale057j0825"
   ],
   "license": "MIT",
