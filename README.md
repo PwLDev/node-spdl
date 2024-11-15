@@ -76,18 +76,13 @@ Note that **<u>this package sticks to what Spotify natively provides</u>** from 
 
 | Keyword       | Bitrate | Codec  | Premium |
 |:--------------|:-------:|:------:|:-------:|
-| aac-low       | 128kbps | AAC    |         | 
-| acc-high      | 256kbps | AAC    | ✅      |
 | vorbis-low    | 96kbps  | Vorbis |         |
 | vorbis-medium | 160kbps | Vorbis |         |
 | vorbis-high   | 320kbps | Vorbis | ✅      |
+| aac-low       | 128kbps | AAC    |         | 
+| acc-high      | 256kbps | AAC    | ✅      |
 
 > The default extension format for Vorbis is **.ogg**, and for AAC is **.m4a**. However this package can auto convert these extensions to **.mp3** using **FFmpeg**.
-
-## Disclaimer
-
-This package doesn't ensure your Spotify account won't be taken down. 
-So, use it at your risk.
 
 ## Credits
 - Package written by Sir [PwL](https://github.com/PwLDev).

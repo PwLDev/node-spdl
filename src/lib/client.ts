@@ -7,7 +7,6 @@ import { SpotifyApiError } from "./errors";
 
 /**
  * Creates a `SpdlClient`.
- * 
  * This can shortcut authentication while downloading a file or making other operations with Spotify's API.
  * 
  * @param {SpdlCredentials} options Credentials to authenticate calls and client options.
@@ -21,7 +20,7 @@ export class SpdlClient {
             this.auth = new SpdlAuth(options.cookie || "");
         } else {
             this.auth = new SpdlAuth();
-            this.auth.accessToken = options.accessToken
+            this.auth.accessToken = options.accessToken;
         }
 
         this.config = options;
@@ -51,5 +50,7 @@ export class SpdlClient {
 
             throw new SpotifyApiError(status, message);
         }
+
+        return json;
     }
 }
