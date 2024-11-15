@@ -1,7 +1,9 @@
 import { request } from "undici";
 
 import { SpdlClientOptions } from "../types/types";
+
 import { SpdlAuth } from "./auth";
+import { SpotifyApiError } from "./errors";
 
 /**
  * Creates a `SpdlClient`.
@@ -12,6 +14,7 @@ import { SpdlAuth } from "./auth";
  */
 export class SpdlClient {
     auth: SpdlAuth;
+    config: SpdlClientOptions;
 
     constructor(options: SpdlClientOptions) {
         if (!options.accessToken) {
@@ -20,6 +23,8 @@ export class SpdlClient {
             this.auth = new SpdlAuth();
             this.auth.accessToken = options.accessToken
         }
+
+        this.config = options;
     }
 
     getAuthHeaders() {
@@ -33,11 +38,18 @@ export class SpdlClient {
 
     async invoke(
         url: string, 
-        tryCount: number = 0
     ): Promise<any> {
         const headers = this.getAuthHeaders();
         const response = await request(url, {
             headers: headers
         });
+
+        const json: any = await response.body.json();
+        if (!json || json["error"]) {
+            const status = json["error"]["status"];
+            const message = json["error"]["message"];
+
+            throw new SpotifyApiError(status, message);
+        }
     }
 }
