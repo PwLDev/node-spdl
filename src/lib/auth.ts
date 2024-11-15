@@ -3,12 +3,11 @@ import { request } from "undici";
 export class SpdlAuth {
     accessToken: string = "";
     expirationTime: string = "";
-    
-    cookie: string;
+    cookie: string = "";
 
-    constructor(cookie: string) {
+    constructor(cookie?: string) {
         if (!cookie || !cookie.length) {
-            throw new Error("You must provide a valid sp_dc cookie to get a token.");
+            return;
         }
 
         this.cookie = cookie;

@@ -1,6 +1,6 @@
 var base62Charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-const toBase62 = (input: number) => {
+export const toBase62 = (input: number) => {
     if (input == 0) {
         return base62Charset[0];
     }
@@ -13,7 +13,7 @@ const toBase62 = (input: number) => {
     return res;
 }
 
-const fromBase62 = (input: string) => {
+export const fromBase62 = (input: string) => {
     let res = 0;
     let length = input.length
     let i, char;
@@ -31,8 +31,3 @@ const fromBase62 = (input: string) => {
     }
     return res;
 }
-
-export {
-    toBase62,
-    fromBase62
-};
