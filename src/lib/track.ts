@@ -7,7 +7,7 @@ import { SpdlAuth } from "./auth";
 
 export const getTrackInfo = (
     trackId: string,
-    auth: SpdlAuth
+    auth: SpdlOptions | SpdlAuth
 ) => {
 
 }

@@ -1,3 +1,5 @@
+import { SpdlAuth } from "../lib/auth";
+
 declare interface SpdlClientOptions {
     cookie?: string;
     accessToken?: string;
@@ -13,14 +15,20 @@ type SpdlAudioQuality = "vorbis_low" | "vorbis_medium" | "vorbis_high" | "aac_lo
 type SpdlAudioContainer = "m4a" | "ogg" | "mp3" | "webm";
 
 declare interface SpdlOptions {
+    auth?: SpdlAuth;
     cookie?: string;
-    accessToken: string;
+    accessToken?: string;
     quality?: SpdlAudioQuality;
     format?: SpdlAudioContainer;
     ffmpegPath?: boolean;
     discrete?: boolean;
     tags?: boolean;
     lyrics?: boolean;
+}
+
+declare interface SpdlAuthOptions {
+    cookie?: string;
+    accessToken?: string;
 }
 
 declare interface Track {
@@ -36,5 +44,6 @@ declare interface Track {
 export {
     SpdlOptions,
     SpdlClientOptions,
+    SpdlAuthOptions,
     Track
 }
