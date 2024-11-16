@@ -2,7 +2,7 @@ import { request } from "undici";
 
 import { SpdlClientOptions } from "../types/types";
 import { SpdlAuth } from "./auth";
-import { SpotifyApiError } from "./errors";
+import { SpotifyApiError, SpotifyAuthError } from "./errors";
 
 /**
  * Creates a `SpdlClient`.
@@ -12,17 +12,24 @@ import { SpotifyApiError } from "./errors";
  */
 export class SpdlClient {
     auth: SpdlAuth;
-    config: SpdlClientOptions;
+    options: SpdlClientOptions;
 
     constructor(options: SpdlClientOptions) {
-        if (!options.accessToken) {
-            this.auth = new SpdlAuth(options.cookie || "");
+        if (options.auth) {
+            this.auth = options.auth;
         } else {
-            this.auth = new SpdlAuth();
-            this.auth.accessToken = options.accessToken;
+            if (options.accessToken) {
+                this.auth = new SpdlAuth({ accessToken: options.accessToken });
+            } else {
+                if (options.cookie) {
+                    this.auth = new SpdlAuth({ cookie: options.cookie });
+                } else {
+                    throw new SpotifyAuthError("A cookie, non-anonymous access token or SpdlAuth must be provided in the options.");
+                }
+            }
         }
 
-        this.config = options;
+        this.options = options;
     }
 
     getAuthHeaders() {

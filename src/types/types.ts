@@ -1,6 +1,7 @@
 import { SpdlAuth } from "../lib/auth";
 
 declare interface SpdlClientOptions {
+    auth?: SpdlAuth;
     cookie?: string;
     accessToken?: string;
     clientId?: string;

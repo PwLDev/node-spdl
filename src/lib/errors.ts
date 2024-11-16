@@ -8,6 +8,15 @@ export class SpotifyApiError extends Error {
     }
 }
 
+export class SpotifyAuthError extends Error { 
+    constructor(
+        message: string
+    ) {
+        super();
+        this.message = `Could not authenticate: ${message}`;
+    }
+}
+
 export class SpotifyStreamError extends Error { 
     constructor(
         reason: string

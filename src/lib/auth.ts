@@ -1,16 +1,23 @@
 import { request } from "undici";
 
+import { SpdlAuthOptions } from "../types/types";
+import { SpotifyAuthError } from "./errors";
+
 export class SpdlAuth {
     accessToken: string = "";
     expirationTime: string = "";
     cookie: string = "";
 
-    constructor(cookie?: string) {
-        if (!cookie || !cookie.length) {
-            return;
+    constructor(options: SpdlAuthOptions) {
+        if (!options.cookie && !options.accessToken) {
+            throw new SpotifyAuthError("A cookie or a non-anonymous access token must be provided.");
         }
 
-        this.cookie = cookie;
+        if (!options.accessToken) {
+
+        }
+
+        this.cookie = options.cookie!;
         this.refresh();
     }
 
@@ -41,7 +48,7 @@ export class SpdlAuth {
         const isAnonymous = response["isAnonymous"];
 
         if (isAnonymous) {
-            throw new Error("You must provide a valid sp_dc cookie from a Spotify logged in browser.\nRefer to https://github.com/PwLDev/node-spdl#readme to see how to extract a cookie.");
+            throw new SpotifyAuthError("You must provide a valid sp_dc cookie from a Spotify logged in browser.\nRefer to https://github.com/PwLDev/node-spdl#readme to see how to extract a cookie.");
             return;
         }
 
