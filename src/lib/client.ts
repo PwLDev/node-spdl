@@ -1,7 +1,6 @@
 import { request } from "undici";
 
 import { SpdlClientOptions } from "../types/types";
-
 import { SpdlAuth } from "./auth";
 import { SpotifyApiError } from "./errors";
 
@@ -31,7 +30,7 @@ export class SpdlClient {
             "Authorization": `Bearer ${this.auth.accessToken}`,
             "Accept-Language": "*",
             "Content-Type": "application/json",
-            "App-Platform": "Web-Player"
+            "app-platform": "Web-Player"
         }
     }
 

@@ -23,7 +23,18 @@ declare interface SpdlOptions {
     lyrics?: boolean;
 }
 
+declare interface Track {
+    albumName: string;
+    name: string;
+    year: string;
+    trackNumber: number;
+    trackId: string;
+    isPlayable: boolean;
+    
+}
+
 export {
     SpdlOptions,
-    SpdlClientOptions
+    SpdlClientOptions,
+    Track
 }
