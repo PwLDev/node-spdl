@@ -84,6 +84,13 @@ Note that **<u>this package sticks to what Spotify natively provides</u>** from 
 
 > The default extension format for Vorbis is **.ogg**, and for AAC is **.m4a**. However this package can auto convert these extensions to **.mp3** using **FFmpeg**.
 
+## Disclaimer
+
+This package shouldn't take down your account at first use, however if you would like to feel safer, you can set `discrete: true` inside the default `spdl()` method to limit the download speed to a slower, less-suspicious speed that matches the natural playback speed of the Web Player.
+
+This package does not save any username or password provided and neither sends them to third party services.
+The credentials provided will only interact with the Spotify API.
+
 ## Credits
 - Package written by Sir [PwL](https://github.com/PwLDev).
 - Thanks to [Alen't](https://github.com/ale057j0825) for inspiration.
