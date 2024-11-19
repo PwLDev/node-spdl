@@ -23,7 +23,7 @@ Before you start with downloading your favorite songs, you first need to do some
 
 - Node.js Version >= 18.
 - Have a **valid Spotify account**.
-- Get a **Spotify cookie** from your browser.
+- Get a **Spotify cookie** from your browser. (or, you can use a non-anonymous Spotify access token and skip this requirement)
 
 ### How to get a cookie? 🍪
 
@@ -39,10 +39,9 @@ Doesn't matter if you don't have a Spotify Premium subscription, log in with any
 
 If you can't find the **sp_dc** cookie, then make sure you're logged in.
 
-
 ## Quickstart
 
-> This package uses **FFmpeg**, so you should install it on your system PATH or you can install [ffmpeg-static](https://npmjs.com/package/ffmpeg-static) as a portable solution or specify the path to the API.
+> This package uses **FFmpeg** to convert raw audio into audio files, so you should install it on your system PATH or you can install [ffmpeg-static](https://npmjs.com/package/ffmpeg-static) as a portable solution or specify the path to the API.
 
 ### Download content
 
@@ -57,7 +56,10 @@ const spdl = require("spdl");
 // import spdl from "spdl";
 
 const url = "https://open.spotify.com/track/6c2OfsMKs7pv7qhD0sGGeM";
-const stream = spdl(url);
+const stream = spdl(url, {
+    cookie: "your cookie here",
+    quality: "vorbis-medium"
+});
 ```
 
 **As simple as that!** (of course if you don't need anything specific rather than getting a stream).
@@ -83,13 +85,6 @@ Note that **<u>this package sticks to what Spotify natively provides</u>** from 
 | acc-high      | 256kbps | AAC    | ✅      |
 
 > The default extension format for Vorbis is **.ogg**, and for AAC is **.m4a**. However this package can auto convert these extensions to **.mp3** using **FFmpeg**.
-
-## Disclaimer
-
-This package shouldn't take down your account at first use, however if you would like to feel safer, you can set `discrete: true` inside the default `spdl()` method to limit the download speed to a slower, less-suspicious speed that matches the natural playback speed of the Web Player.
-
-This package does not save any username or password provided and neither sends them to third party services.
-The credentials provided will only interact with the Spotify API.
 
 ## Credits
 - Package written by Sir [PwL](https://github.com/PwLDev).

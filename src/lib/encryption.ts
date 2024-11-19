@@ -15,7 +15,7 @@ export const toBase62 = (input: number) => {
 
 export const fromBase62 = (input: string) => {
     let res = 0;
-    let length = input.length
+    let length = input.length;
     let i, char;
 
     for (i = 0; i < length; i++) {
@@ -29,5 +29,6 @@ export const fromBase62 = (input: string) => {
         }
         res += char * Math.pow(62, length - i - 1);
     }
+
     return res;
 }

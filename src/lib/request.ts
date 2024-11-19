@@ -1,17 +1,20 @@
 import { request } from "undici";
 
-import { SpdlAuthLike } from "../types/types";
-import { SpdlAuth, SpdlSession } from "./auth";
+import { SpdlAuth } from "./auth";
 
-export const getRequestHeader = (auth: SpdlAuthLike) => {
+/**
+ * Gets a Stream from a Track id
+ * @param id Spotify track id
+ */
+const downloadFromTrack = (id: string) => {
+
+}
+
+const getRequestHeader = (auth: SpdlAuth) => {
     return {
         "Authorization": `Bearer ${auth.accessToken}`,
         "Accept-Language": "*",
         "Content-Type": "application/json",
         "App-Platform": "Web-Player"
     }
-}
-
-export const invoke = (url: string) => {
-    
 }

@@ -1,10 +1,7 @@
-import stream from "node:stream";
-import { SpdlAuth, SpdlSession } from "../lib/auth";
-
-declare type SpdlAuthLike = SpdlAuth | SpdlSession;
+import { SpdlAuth } from "../lib/auth";
 
 declare interface SpdlClientOptions {
-    auth?: SpdlAuthLike;
+    auth?: SpdlAuth;
     cookie?: string;
     accessToken?: string;
     clientId?: string;
@@ -15,11 +12,11 @@ declare interface SpdlClientOptions {
     ffmpegPath?: boolean;
 }
 
-declare type SpdlAudioQuality = "vorbis_low" | "vorbis_medium" | "vorbis_high" | "aac_low" | "aac_high" | number;
-declare type SpdlAudioContainer = "m4a" | "ogg" | "mp3" | "webm";
+type SpdlAudioQuality = "vorbis_low" | "vorbis_medium" | "vorbis_high" | "aac_low" | "aac_high" | number;
+type SpdlAudioContainer = "m4a" | "ogg" | "mp3" | "webm";
 
 declare interface SpdlOptions {
-    auth?: SpdlAuthLike;
+    auth?: SpdlAuth;
     cookie?: string;
     accessToken?: string;
     quality?: SpdlAudioQuality;
@@ -35,11 +32,6 @@ declare interface SpdlAuthOptions {
     accessToken?: string;
 }
 
-declare interface SpdlSessionOptions {
-    username: string;
-    password: string;
-}
-
 declare interface Track {
     albumName: string;
     name: string;
@@ -47,12 +39,12 @@ declare interface Track {
     trackNumber: number;
     trackId: string;
     isPlayable: boolean;
+    
 }
 
 export {
     SpdlOptions,
     SpdlClientOptions,
-    SpdlAuthLike,
     SpdlAuthOptions,
-    Track,
-};
+    Track
+}
