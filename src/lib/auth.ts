@@ -1,7 +1,7 @@
 import { request } from "undici";
 
 import { SpotifyAuthError } from "./errors";
-import { SpdlAuthOptions } from "../types/types";
+import { SpdlAuthOptions } from "./types";
 
 export class SpdlAuth {
     accessToken: string = "";

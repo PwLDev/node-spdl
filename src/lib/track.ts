@@ -1,7 +1,7 @@
 import stream from "node:stream";
 
 import * as encryption from "./encryption";
-import { SpdlOptions } from "../types/types";
+import { SpdlOptions } from "./types";
 import { SpdlAuth } from "./auth";
 import { SpotifyAuthError } from "./errors";
 

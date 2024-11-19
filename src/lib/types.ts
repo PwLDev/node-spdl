@@ -1,4 +1,4 @@
-import { SpdlAuth } from "../lib/auth";
+import { SpdlAuth } from "./auth";
 
 declare interface SpdlClientOptions {
     auth?: SpdlAuth;

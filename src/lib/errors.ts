@@ -22,6 +22,6 @@ export class SpotifyStreamError extends Error {
         reason: string
     ) {
         super();
-        this.message = `Could not get a stream: ${reason}.`;
+        this.message = `Could not get a Spotify stream: ${reason}.`;
     }
 }
