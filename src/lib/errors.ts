@@ -13,7 +13,7 @@ export class SpotifyAuthError extends Error {
         message: string
     ) {
         super();
-        this.message = `Could not authenticate: ${message}`;
+        this.message = `Spotify Auth: ${message}`;
     }
 }
 

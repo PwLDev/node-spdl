@@ -2,10 +2,20 @@
   "name": "spdl",
   "version": "1.0.0",
   "type": "module",
-  "description": "A Spotify content downloader written in Typescript.",
-  "main": "src/index.ts",
+  "description": "A Spotify content downloader for Node.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "require": "./dist/index.cjs",
+    "import": "./dist/index.mjs"
+  },
+  "files": ["dist"],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:esm": "tsc --module ESNext --outDir dist/esm",
+    "build:cjs": "tsc --module CommonJS --outDir dist/cjs",
+    "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist",
+    "build": "npm run build:esm && npm run build:cjs && npm run build:types"
   },
   "repository": {
     "type": "git",
@@ -29,9 +39,6 @@
     "url": "https://github.com/PwLDev/node-spdl/issues"
   },
   "homepage": "https://github.com/PwLDev/node-spdl#readme",
-  "files": [
-    "dist"
-  ],
   "dependencies": {
     "@types/node": "^22.9.0",
     "fluent-ffmpeg": "^2.1.3",

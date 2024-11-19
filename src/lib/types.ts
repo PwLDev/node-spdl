@@ -12,8 +12,8 @@ declare interface SpdlClientOptions {
     ffmpegPath?: boolean;
 }
 
-type SpdlAudioQuality = "vorbis_low" | "vorbis_medium" | "vorbis_high" | "aac_low" | "aac_high" | number;
-type SpdlAudioContainer = "m4a" | "ogg" | "mp3" | "webm";
+declare type SpdlAudioQuality = "vorbis_low" | "vorbis_medium" | "vorbis_high" | "aac_low" | "aac_high" | number;
+declare type SpdlAudioContainer = "m4a" | "ogg" | "mp3" | "webm";
 
 declare interface SpdlOptions {
     auth?: SpdlAuth;
@@ -21,6 +21,7 @@ declare interface SpdlOptions {
     accessToken?: string;
     quality?: SpdlAudioQuality;
     format?: SpdlAudioContainer;
+    bitrate?: number;
     ffmpegPath?: boolean;
     discrete?: boolean;
     tags?: boolean;
@@ -30,6 +31,12 @@ declare interface SpdlOptions {
 declare interface SpdlAuthOptions {
     cookie?: string;
     accessToken?: string;
+}
+
+declare interface SpdlSessionOptions {
+    username: string;
+    password: string;
+    refresh?: boolean
 }
 
 declare interface Track {
@@ -46,5 +53,6 @@ export {
     SpdlOptions,
     SpdlClientOptions,
     SpdlAuthOptions,
+    SpdlSessionOptions,
     Track
 }
