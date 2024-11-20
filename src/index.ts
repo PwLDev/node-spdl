@@ -1,3 +1,3 @@
-import { downloadTrackFromUrl as spdl } from "./lib/track";
+import { spdl } from "./lib/track.js";
 
 export default spdl;

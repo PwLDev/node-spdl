@@ -1,7 +1,7 @@
 import { request } from "undici";
 
-import { SpdlAuth } from "./auth";
-import { SpotifyApiError } from "./errors";
+import { SpdlAuth } from "./auth.js";
+import { SpotifyApiError } from "./errors.js";
 
 export const getRequestHeader = (auth: SpdlAuth) => {
     return {

@@ -1,7 +1,7 @@
 import { request } from "undici";
 
-import { SpotifyAuthError } from "./errors";
-import { SpdlAuthLike, SpdlAuthOptions } from "./types";
+import { SpotifyAuthError } from "./errors.js";
+import { SpdlAuthLike, SpdlAuthOptions } from "./types.js";
 
 /**
  * A `SpdlAuth` shortcuts authentication when making multiple tasks with the API.

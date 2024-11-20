@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { SpdlAuth } from "./auth";
+import { SpdlAuth } from "./auth.js";
 
 declare type SpdlAudioQuality = "vorbis_low" | "vorbis_medium" | "vorbis_high" | "aac_low" | "aac_high" | number;
 declare type SpdlAudioContainer = "m4a" | "ogg" | "mp3" | "webm";
@@ -14,6 +14,7 @@ declare interface SpdlOptions {
     discrete?: boolean;
     metadata?: boolean;
     lyrics?: boolean;
+    highWaterMark?: number;
     ffmpegPath?: fs.PathLike;
 }
 

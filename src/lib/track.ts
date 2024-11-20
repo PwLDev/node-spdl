@@ -1,28 +1,24 @@
-import stream from "node:stream";
+import {
+    PassThrough,
+    Readable
+} from "node:stream";
 
-import * as encryption from "./encryption";
-
-import { getAuth, SpdlAuth } from "./auth";
-import { Endpoints } from "./const";
-import { SpotifyApiError, SpotifyAuthError, SpotifyError } from "./errors";
-import { invoke } from "./request";
-import { SpdlAuthLike, SpdlOptions, Track } from "./types";
-import { getIdFromURL, validateURL } from "./url";
+import { getAuth, SpdlAuth } from "./auth.js";
+import { Endpoints } from "./const.js";
+import { base62 } from "./crypto.js";
+import { SpotifyApiError, SpotifyAuthError, SpotifyError } from "./errors.js";
+import { invoke } from "./request.js";
+import { SpdlAuthLike, SpdlOptions, Track } from "./types.js";
+import { getIdFromURL, validateURL } from "./url.js";
 
 export const getTrackInfo = async (
     trackId: string,
     options: SpdlAuthLike
 ): Promise<Track> => {
     const auth = getAuth(options);
-    const info = await invoke(`${Endpoints.TRACKS_URL}${trackId}`, auth);
-
-    if (!info["tracks"]) {
-        throw new SpotifyApiError(404, "Track ID not found.");
-    }
+    const track = await invoke(`${Endpoints.TRACKS_URL}${trackId}`, auth);
 
     try {
-        let track = info["tracks"][0];
-
         let artists: string[] = [];
         for (let artist of track["artists"]) {
             artists.push(artist);
@@ -30,10 +26,10 @@ export const getTrackInfo = async (
 
         let albumName = track["album"]["name"];
         let name = track["name"];
-        let year = track["album"]["release_year"].split("-")[0];
+        let year = track["album"]["release_date"].split("-")[0];
         let trackNumber: number = track["track_number"];
         let trackId: string = track["id"];
-        let isPlayable: boolean = track["is_playable"];
+        let isPlayable: boolean = track["is_playable"] || true;
         let durationMs: number = track["duration_ms"];
 
         let image = track["album"]["images"][0];
@@ -57,22 +53,24 @@ export const getTrackInfo = async (
         };
         return response;
     } catch (error) {
-        throw new SpotifyError(error as string);
+        throw new Error(error as string);
     }
 }
 
-export const getTrackDuration = async (
-    trackId: string,
-    options: SpdlAuthLike
-) => {
-    const auth = getAuth(options);
-}
-
-export const downloadTrack = (
-    trackId: string,
-    options: SpdlOptions = {}
+/**
+ * Downloads a track from Spotify by it's URL.
+ * @param {String} url URL of the track
+ * @param {SpdlOptions} options Options and auth for downloading the track.
+ */
+export const spdl = (
+    url: string,
+    options: SpdlOptions
 ) => {
     let auth: SpdlAuth;
+    const stream = new PassThrough({
+        highWaterMark: options.highWaterMark || 1024 * 512
+    });
+
     if (options.auth) {
         auth = options.auth;
     } else {
@@ -87,26 +85,24 @@ export const downloadTrack = (
         }
     }
 
-    const contentId = encryption.fromBase62(trackId);
-}
-
-/**
- * Downloads a track from Spotify by it's URL.
- * @param {String} url URL of the track
- * @param {SpdlOptions} options Options and auth for downloading the track.
- */
-export const downloadTrackFromUrl = (
-    url: string,
-    options: SpdlOptions
-) => {
     if (validateURL(url)) {
         const trackId = getIdFromURL(url);
         if (!trackId) {
             throw new SpotifyError("The Spotify URL is malformed.");
         }
 
-        return downloadTrack(trackId, options);
+        getTrackInfo(trackId, auth).then((track) => {
+
+        });
     } else {
         throw new SpotifyAuthError("An invalid Spotify URL was provided.");
     }
+}
+
+export const downloadTrackFromInfo = (
+    track: Track,
+    options: SpdlOptions = {}
+) => {
+    let auth: SpdlAuth
+    let contentId = Buffer.from(base62.decode(track.trackId)).toString("hex");
 }
