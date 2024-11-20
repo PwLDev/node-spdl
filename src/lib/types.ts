@@ -1,16 +1,5 @@
+import fs from "node:fs";
 import { SpdlAuth } from "./auth";
-
-declare interface SpdlClientOptions {
-    auth?: SpdlAuth;
-    cookie?: string;
-    accessToken?: string;
-    clientId?: string;
-    clientSecret?: string;
-    redirectUri?: string;
-    refreshToken?: string;
-    autoRefresh?: boolean;
-    ffmpegPath?: boolean;
-}
 
 declare type SpdlAudioQuality = "vorbis_low" | "vorbis_medium" | "vorbis_high" | "aac_low" | "aac_high" | number;
 declare type SpdlAudioContainer = "m4a" | "ogg" | "mp3" | "webm";
@@ -22,21 +11,15 @@ declare interface SpdlOptions {
     quality?: SpdlAudioQuality;
     format?: SpdlAudioContainer;
     bitrate?: number;
-    ffmpegPath?: boolean;
     discrete?: boolean;
-    tags?: boolean;
+    metadata?: boolean;
     lyrics?: boolean;
+    ffmpegPath?: fs.PathLike;
 }
 
 declare interface SpdlAuthOptions {
     cookie?: string;
     accessToken?: string;
-}
-
-declare interface SpdlSessionOptions {
-    username: string;
-    password: string;
-    refresh?: boolean
 }
 
 declare interface Track {
@@ -46,13 +29,10 @@ declare interface Track {
     trackNumber: number;
     trackId: string;
     isPlayable: boolean;
-    
 }
 
 export {
     SpdlOptions,
-    SpdlClientOptions,
     SpdlAuthOptions,
-    SpdlSessionOptions,
     Track
 }

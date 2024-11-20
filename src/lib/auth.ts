@@ -1,8 +1,17 @@
 import { request } from "undici";
 
 import { SpotifyAuthError } from "./errors";
-import { SpdlAuthOptions, SpdlSessionOptions } from "./types";
+import { SpdlAuthOptions } from "./types";
 
+/**
+ * A `SpdlAuth` shortcuts authentication when making multiple tasks with the API.
+ * A valid sp_dc cookie or non-anonymous (logged in) access token must be provided.
+ * 
+ * Refer to [here](https://github.com/PwLDev/node-spdl?tab=readme-ov-file#how-to-get-a-cookie-])
+ * to see how to extract a sp_dc cookie.
+ * 
+ * @param {SpdlAuthOptions} options Authenticate with your Spotify account.
+ */
 export class SpdlAuth {
     accessToken: string = "";
     expirationTime: string = "";
@@ -22,7 +31,16 @@ export class SpdlAuth {
         }
     }
 
+    /**
+     * Refresh the token if expiration time expired.
+     */
     async refresh(): Promise<void> {
+        if (
+            !this.expiration ||
+            !this.cookie.length ||
+            this.expiration > Date.now()
+        ) return;
+
         const tokenRequest = await request(
             "https://open.spotify.com/get_access_token?reason=transport&productType=webplayer",
             {
@@ -54,5 +72,9 @@ export class SpdlAuth {
 
         this.accessToken = response["accessToken"];
 
+        const expirationTime = response["accessTokenExpirationTimestampMs"];
+        if (expirationTime) {
+            this.expiration = expirationTime;
+        }
     }
 }

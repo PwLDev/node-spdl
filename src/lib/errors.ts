@@ -13,7 +13,7 @@ export class SpotifyAuthError extends Error {
         message: string
     ) {
         super();
-        this.message = `Spotify Auth: ${message}`;
+        this.message = `Spotify Auth failed: ${message}`;
     }
 }
 
@@ -22,6 +22,6 @@ export class SpotifyStreamError extends Error {
         reason: string
     ) {
         super();
-        this.message = `Could not get a Spotify stream: ${reason}.`;
+        this.message = `Spotify stream failed: ${reason}.`;
     }
 }

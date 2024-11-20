@@ -1,29 +1,32 @@
 # node-spdl
-A module to download tracks and videos from Spotify, directly from Spotify's servers written in Typescript.
-For Javascripters and Typescripters.
 
-<div align="center">
+A module to download content directly from Spotify's servers, written in Typescript, for Node.js, with native Node components.
+
+<!-- <div align="center">
     <img src="https://cdn.discordapp.com/attachments/1091932806206201857/1306323801700700212/NodeSpdl.png?ex=67364058&is=6734eed8&hm=6ee94ff12bc28bf4e7fbf8f552751a06417e32f5cc725f2fe10f3c6291278440&" alt="node-spdl graphic">
-</div>
+</div> -->
 
 > [!WARNING]
 > There is no guarantee your account will not be lost or taken down for using this package.
-> So use it at your own risk!
+> Use it at your own risk!
+
+## Why spdl?
+In contrast to other similar packages which download the song from YouTube, this package directly downloads from Spotify's servers, delivering a high-quality, uncompressed Readable stream.
 
 ## Features
-- Download music tracks in AAC or Vorbis.
-- Download videos in MP4 or Webm.
-- Easy to use interface with Node based streaming.
-- ID3 tagging for MP3 files.
+- Downloads music tracks in different formats.
+- Downloads playlists.
+- Easy to use Node based streaming.
+- Metadata tagging for MP3 files.
 - Export synced lyrics.
 
 ## Requirements
 
-Before you start with downloading your favorite songs, you first need to do some stuff first.
-
-- Node.js Version >= 18.
 - Have a **valid Spotify account**.
 - Get a **Spotify cookie** from your browser. (or, you can use a non-anonymous Spotify access token and skip this requirement)
+
+Non-anonymous token refers to an access token which is get from a Spotify Account (logged in browser).
+Yet a cookie is a better option due to the fact that the access token can automatically refresh after expiry time.
 
 ### How to get a cookie? 🍪
 
@@ -47,27 +50,27 @@ If you can't find the **sp_dc** cookie, then make sure you're logged in.
 
 The base function of this package, which most likely you're here for: **downloading tracks!**
 
-> You can directly import the package, which **is hybrid**, you can use it either in CJS or ES modules, and use it as a function.
-> Also note that this package is **properly typed**, so you shouldn't have any issue when using Typescript.
+You can directly import the package, which **is hybrid**, you can use it either in CJS or ES modules, and use it as a function.
+Also note that this package is **properly typed**, so you shouldn't have any issue when using Typescript.
+
+Firstly, we must authenticate with the Spotify API, which can be made by providing a cookie, a non-anonymous token or creating a session with your username and password (coming soon). 
 
 ```js
-const spdl = require("spdl");
-// In Typescript or ES modules:
-// import spdl from "spdl";
+import spdl from "spdl";
+// CJS import:
+// const spdl = require("spdl");
 
+// A very basic example
 const url = "https://open.spotify.com/track/6c2OfsMKs7pv7qhD0sGGeM";
 const stream = spdl(url, {
-    cookie: "your cookie here",
-    quality: "vorbis-medium"
+    cookie: "your cookie here"
 });
 ```
 
 **As simple as that!** (of course if you don't need anything specific rather than getting a stream).
 
-But maybe you're wondering, how can I get this more customized?
-Note that **<u>this package sticks to what Spotify natively provides</u>** from it's servers.
+Spotify streams it's content with two possible codecs: **AAC** or **Vorbis**.
 
-> Spotify streams it's content with two possible codecs: **AAC** or **Vorbis**.
 
 ## Formats
 
@@ -84,7 +87,20 @@ Note that **<u>this package sticks to what Spotify natively provides</u>** from 
 | aac-low       | 128kbps | AAC    |         | 
 | acc-high      | 256kbps | AAC    | ✅      |
 
-> The default extension format for Vorbis is **.ogg**, and for AAC is **.m4a**. However this package can auto convert these extensions to **.mp3** using **FFmpeg**.
+The default extension format for Vorbis is **.ogg**, and for AAC is **.m4a**. However this package can auto convert these extensions to **.mp3** using **FFmpeg**.
+
+## API
+
+TODO: documentation
+
+## Disclaimer
+
+This package shouldn't take down your account at first use, however if you would like to feel safer, you can use the `discrete` property inside the default `spdl()` method to limit the download speed to a slower, less-suspicious speed that matches the natural playback of the Web Player.
+
+This package does not save any username or password provided and neither sends them to third party services.
+The credentials provided will only interact with the Spotify API.
+
+We are not related in any way with Spotify AB.
 
 ## Credits
 - Package written by Sir [PwL](https://github.com/PwLDev).

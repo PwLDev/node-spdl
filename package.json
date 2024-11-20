@@ -23,10 +23,13 @@
   },
   "keywords": [
     "spdl",
-    "spotify-stream",
-    "spotify-downloader",
-    "spotify-download",
-    "spotify-dl",
+    "spotify stream",
+    "spotify downloader",
+    "spotify download",
+    "spotify dl",
+    "spotify api",
+    "spotify music",
+    "spotify web",
     "spotify",
     "spdl-core"
   ],

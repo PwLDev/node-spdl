@@ -17,19 +17,20 @@ export const downloadTrack = (
     options: SpdlOptions = {}
 ) => {
     let auth: SpdlAuth;
-    if (!options.auth) {
-        if (!options.accessToken) {
-            if (!options.cookie) {
-                throw new SpotifyAuthError("A cookie, non-anonymous access token or SpdlAuth must be provided in the options.");
-            }
-
-            auth = new SpdlAuth({ cookie: options.cookie });
-        }
-    } else {
+    if (options.auth) {
         auth = options.auth;
+    } else {
+        if (options.accessToken) {
+            auth = new SpdlAuth({ accessToken: options.accessToken });
+        } else {
+            if (options.cookie) {
+                auth = new SpdlAuth({ cookie: options.cookie });
+            } else {
+                throw new SpotifyAuthError(`A valid "sp_dc" cookie, non-anonymous access token or SpdlAuth must be provided.`);
+            }
+        }
     }
+
+    
 }
 
-export const addTags = (file: Buffer) => {
-
-}
