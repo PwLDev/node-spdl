@@ -10,7 +10,9 @@
     "require": "./dist/index.cjs",
     "import": "./dist/index.mjs"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build:esm": "tsc --module ESNext --outDir dist/esm",
     "build:cjs": "tsc --module CommonJS --outDir dist/cjs",
@@ -49,6 +51,7 @@
     "undici": "^6.20.1"
   },
   "devDependencies": {
+    "dotenv": "^16.4.5",
     "typescript": "^5.6.3"
   }
 }

@@ -1,16 +1,70 @@
 import stream from "node:stream";
 
 import * as encryption from "./encryption";
-import { SpdlOptions } from "./types";
-import { SpdlAuth } from "./auth";
-import { SpotifyAuthError } from "./errors";
 
+import { getAuth, SpdlAuth } from "./auth";
+import { Endpoints } from "./const";
+import { SpotifyApiError, SpotifyAuthError, SpotifyError } from "./errors";
+import { invoke } from "./request";
+import { SpdlAuthLike, SpdlOptions, Track } from "./types";
 
-export const getTrackInfo = (
+export const getTrackInfo = async (
     trackId: string,
-    auth: SpdlOptions | SpdlAuth
+    options: SpdlAuthLike
+): Promise<Track> => {
+    const auth = getAuth(options);
+    const info = await invoke(`${Endpoints.TRACKS_URL}${trackId}`, auth);
+
+    if (!info["tracks"]) {
+        throw new SpotifyApiError(404, "Track ID not found.");
+    }
+
+    try {
+        let track = info["tracks"][0];
+
+        let artists: string[] = [];
+        for (let artist of track["artists"]) {
+            artists.push(artist);
+        }
+
+        let albumName = track["album"]["name"];
+        let name = track["name"];
+        let year = track["album"]["release_year"].split("-")[0];
+        let trackNumber: number = track["track_number"];
+        let trackId: string = track["id"];
+        let isPlayable: boolean = track["is_playable"];
+        let durationMs: number = track["duration_ms"];
+
+        let image = track["album"]["images"][0];
+        // try to find better quality images
+        for (let i of track["album"]["images"]) {
+            if (i["width"] > image["width"]) {
+                image = i;
+            }
+        }
+
+        const response: Track = {
+            artists,
+            albumName,
+            name,
+            year,
+            trackNumber,
+            trackId,
+            isPlayable,
+            durationMs,
+            imageUrl: image["url"]
+        };
+        return response;
+    } catch (error) {
+        throw new SpotifyError(error as string);
+    }
+}
+
+export const getTrackDuration = async (
+    trackId: string,
+    options: SpdlAuthLike
 ) => {
-    
+    const auth = getAuth(options);
 }
 
 export const downloadTrack = (

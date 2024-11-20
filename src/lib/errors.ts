@@ -1,10 +1,19 @@
+export class SpotifyError extends Error { 
+    constructor(
+        message: string
+    ) {
+        super();
+        this.message = `Spotify Error: ${message}`;
+    }
+}
+
 export class SpotifyApiError extends Error { 
     constructor(
         statusCode: number,
         message: string
     ) {
         super();
-        this.message = `Request failed with code ${statusCode || "unknown"} (${message}).`;
+        this.message = `Request failed with code ${statusCode || "unknown"} (${message})`;
     }
 }
 
@@ -22,6 +31,6 @@ export class SpotifyStreamError extends Error {
         reason: string
     ) {
         super();
-        this.message = `Spotify stream failed: ${reason}.`;
+        this.message = `Spotify stream failed: ${reason}`;
     }
 }

@@ -1,7 +1,7 @@
 import { request } from "undici";
 
 import { SpotifyAuthError } from "./errors";
-import { SpdlAuthOptions } from "./types";
+import { SpdlAuthLike, SpdlAuthOptions } from "./types";
 
 /**
  * A `SpdlAuth` shortcuts authentication when making multiple tasks with the API.
@@ -75,6 +75,22 @@ export class SpdlAuth {
         const expirationTime = response["accessTokenExpirationTimestampMs"];
         if (expirationTime) {
             this.expiration = expirationTime;
+        }
+    }
+}
+
+export const getAuth = (param: SpdlAuthLike): SpdlAuth => {
+    if (param instanceof SpdlAuth) {
+        return param;
+    } else {
+        if (param.accessToken) {
+            return new SpdlAuth({ accessToken: param.accessToken });
+        } else {
+            if (param.cookie) {
+                return new SpdlAuth({ cookie: param.cookie });
+            } else {
+                throw new SpotifyAuthError(`A valid "sp_dc" cookie, non-anonymous access token or SpdlAuth must be provided.`);
+            }
         }
     }
 }

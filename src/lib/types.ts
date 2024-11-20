@@ -17,6 +17,8 @@ declare interface SpdlOptions {
     ffmpegPath?: fs.PathLike;
 }
 
+declare type SpdlAuthLike = SpdlAuthOptions | SpdlAuth;
+
 declare interface SpdlAuthOptions {
     cookie?: string;
     accessToken?: string;
@@ -36,6 +38,7 @@ declare interface Track {
 
 export {
     SpdlOptions,
+    SpdlAuthLike,
     SpdlAuthOptions,
     Track
 }

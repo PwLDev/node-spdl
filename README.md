@@ -1,5 +1,4 @@
 # node-spdl
-
 A module to download content directly from Spotify's servers, written in Typescript, for Node.js, with native Node components.
 
 <!-- <div align="center">
@@ -15,6 +14,7 @@ In contrast to other similar packages which download the song from YouTube, this
 ## Features
 - Downloads music tracks in different formats.
 - Downloads playlists.
+- Downloads podcast episodes.
 - Easy to use Node based streaming.
 - Metadata tagging for MP3 files.
 - Export synced lyrics.
@@ -51,6 +51,7 @@ You can directly import the package, which **is hybrid**, you can use it either 
 Also note that this package is **properly typed**, so you shouldn't have any issue when using Typescript.
 
 Firstly, we must authenticate with the Spotify API, which can be made by providing a cookie, a non-anonymous token or creating a session with your username and password (coming soon). 
+I'd recommend you to use a `SpdlAuth` to shortcut authentication if you're making multiple operations.
 
 ```js
 import spdl from "spdl";
