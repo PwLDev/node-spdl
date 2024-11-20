@@ -5,11 +5,12 @@ import { SpdlOptions } from "./types";
 import { SpdlAuth } from "./auth";
 import { SpotifyAuthError } from "./errors";
 
+
 export const getTrackInfo = (
     trackId: string,
     auth: SpdlOptions | SpdlAuth
 ) => {
-
+    
 }
 
 export const downloadTrack = (
@@ -31,6 +32,6 @@ export const downloadTrack = (
         }
     }
 
-    
+    const contentId = encryption.fromBase62(trackId);
 }
 

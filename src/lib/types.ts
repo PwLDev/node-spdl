@@ -23,12 +23,15 @@ declare interface SpdlAuthOptions {
 }
 
 declare interface Track {
+    artists: string[];
     albumName: string;
     name: string;
     year: string;
     trackNumber: number;
     trackId: string;
     isPlayable: boolean;
+    durationMs: number;
+    imageUrl: string;
 }
 
 export {

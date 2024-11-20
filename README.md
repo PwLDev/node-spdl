@@ -10,7 +10,6 @@ A module to download content directly from Spotify's servers, written in Typescr
 > There is no guarantee your account will not be lost or taken down for using this package.
 > Use it at your own risk!
 
-## Why spdl?
 In contrast to other similar packages which download the song from YouTube, this package directly downloads from Spotify's servers, delivering a high-quality, uncompressed Readable stream.
 
 ## Features
@@ -25,7 +24,7 @@ In contrast to other similar packages which download the song from YouTube, this
 - Have a **valid Spotify account**.
 - Get a **Spotify cookie** from your browser. (or, you can use a non-anonymous Spotify access token and skip this requirement)
 
-Non-anonymous token refers to an access token which is get from a Spotify Account (logged in browser).
+**Non-anonymous** token refers to an access token which is get from a Spotify Account (logged in browser).
 Yet a cookie is a better option due to the fact that the access token can automatically refresh after expiry time.
 
 ### How to get a cookie? 🍪
@@ -43,8 +42,6 @@ Doesn't matter if you don't have a Spotify Premium subscription, log in with any
 If you can't find the **sp_dc** cookie, then make sure you're logged in.
 
 ## Quickstart
-
-> This package uses **FFmpeg** to convert raw audio into audio files, so you should install it on your system PATH or you can install [ffmpeg-static](https://npmjs.com/package/ffmpeg-static) as a portable solution or specify the path to the API.
 
 ### Download content
 
