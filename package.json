@@ -11,7 +11,9 @@
     "import": "./dist/index.mjs"
   },
   "files": [
-    "dist", "README.md", "package.json"
+    "dist",
+    "README.md",
+    "package.json"
   ],
   "scripts": {
     "build:esm": "tsc --module ESNext --outDir dist/esm",
