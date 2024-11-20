@@ -7,6 +7,7 @@ import { Endpoints } from "./const";
 import { SpotifyApiError, SpotifyAuthError, SpotifyError } from "./errors";
 import { invoke } from "./request";
 import { SpdlAuthLike, SpdlOptions, Track } from "./types";
+import { getIdFromURL, validateURL } from "./url";
 
 export const getTrackInfo = async (
     trackId: string,
@@ -89,3 +90,23 @@ export const downloadTrack = (
     const contentId = encryption.fromBase62(trackId);
 }
 
+/**
+ * Downloads a track from Spotify by it's URL.
+ * @param {String} url URL of the track
+ * @param {SpdlOptions} options Options and auth for downloading the track.
+ */
+export const downloadTrackFromUrl = (
+    url: string,
+    options: SpdlOptions
+) => {
+    if (validateURL(url)) {
+        const trackId = getIdFromURL(url);
+        if (!trackId) {
+            throw new SpotifyError("The Spotify URL is malformed.");
+        }
+
+        return downloadTrack(trackId, options);
+    } else {
+        throw new SpotifyAuthError("An invalid Spotify URL was provided.");
+    }
+}

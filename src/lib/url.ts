@@ -3,7 +3,7 @@ export const validateURL = (url: string): boolean => {
     return urlRegex.test(url); 
 }
 
-export const getIDFromURL = (url: string): string | null => {
+export const getIdFromURL = (url: string): string | null => {
     const trackRegex = /^https?:\/\/(?:open\.spotify\.com\/track\/|spoti\.fi\/)([a-zA-Z0-9]+)(?:\?.*)?$/;
     const match = url.match(trackRegex);
 

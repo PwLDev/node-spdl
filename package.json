@@ -11,13 +11,13 @@
     "import": "./dist/index.mjs"
   },
   "files": [
-    "dist"
+    "dist", "README.md", "package.json"
   ],
   "scripts": {
     "build:esm": "tsc --module ESNext --outDir dist/esm",
     "build:cjs": "tsc --module CommonJS --outDir dist/cjs",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist",
-    "build": "npm run build:esm && npm run build:cjs && npm run build:types"
+    "build": "npm run build:esm && npm run build:cjs && npm run build:types && tsc-alias"
   },
   "repository": {
     "type": "git",
@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "dotenv": "^16.4.5",
+    "tsc-alias": "^1.8.10",
     "typescript": "^5.6.3"
   }
 }
