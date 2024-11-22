@@ -10,7 +10,6 @@ declare interface SpdlOptions {
     accessToken?: string;
     quality?: SpdlAudioQuality;
     format?: SpdlAudioContainer;
-    bitrate?: number;
     discrete?: boolean;
     metadata?: boolean;
     lyrics?: boolean;
@@ -25,21 +24,8 @@ declare interface SpdlAuthOptions {
     accessToken?: string;
 }
 
-declare interface Track {
-    artists: string[];
-    albumName: string;
-    name: string;
-    year: string;
-    trackNumber: number;
-    trackId: string;
-    isPlayable: boolean;
-    durationMs: number;
-    imageUrl: string;
-}
-
 export {
     SpdlOptions,
     SpdlAuthLike,
-    SpdlAuthOptions,
-    Track
+    SpdlAuthOptions
 }

@@ -98,6 +98,8 @@ This package shouldn't take down your account at first use, however if you would
 This package does not save any username or password provided and neither sends them to third party services.
 The credentials provided will only interact with the Spotify API.
 
+This package does not use Widevine or DRM decryption for extracting the content.
+
 We are not related in any way with Spotify AB.
 
 ## Credits

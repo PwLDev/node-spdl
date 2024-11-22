@@ -5,10 +5,11 @@ import {
 
 import { getAuth, SpdlAuth } from "./auth.js";
 import { Endpoints } from "./const.js";
-import { base62 } from "./crypto.js";
-import { SpotifyApiError, SpotifyAuthError, SpotifyError } from "./errors.js";
+import { base62 } from "./crypt.js";
+import { SpotifyAuthError, SpotifyError } from "./errors.js";
+import { Track } from "./metadata.js";
 import { invoke } from "./request.js";
-import { SpdlAuthLike, SpdlOptions, Track } from "./types.js";
+import { SpdlAuthLike, SpdlOptions } from "./types.js";
 import { getIdFromURL, validateURL } from "./url.js";
 
 export const getTrackInfo = async (
@@ -58,7 +59,10 @@ export const getTrackInfo = async (
 }
 
 /**
- * Downloads a track from Spotify by it's URL.
+ * Downloads content from Spotify by it's URL.
+ * 
+ * It can be either a song or video.
+ * 
  * @param {String} url URL of the track
  * @param {SpdlOptions} options Options and auth for downloading the track.
  */
@@ -105,4 +109,8 @@ export const downloadTrackFromInfo = (
 ) => {
     let auth: SpdlAuth
     let contentId = Buffer.from(base62.decode(track.trackId)).toString("hex");
+}
+
+const getContentFeeder = (track: Track) => {
+
 }
