@@ -24,7 +24,22 @@ declare interface Track {
     imageUrl: string;
 }
 
+declare interface TrackFile {
+    id: string;
+    rawFormat: string;
+}
+
+declare interface TrackMetadata {
+    contentId: string;
+    name: string;
+    files: TrackFile[];
+    rawFormats: string[];
+}
+
 export {
+    LyricsLine,
     Lyrics,
-    Track
+    Track,
+    TrackFile,
+    TrackMetadata
 }

@@ -4,10 +4,10 @@ import {
 } from "node:stream";
 
 import { getAuth, SpdlAuth } from "./auth.js";
-import { Endpoints } from "./const.js";
+import { endpoints, formats } from "./const.js";
 import { base62 } from "./crypt.js";
-import { SpotifyAuthError, SpotifyError } from "./errors.js";
-import { Track } from "./metadata.js";
+import { SpotifyAuthError, SpotifyError, SpotifyResolveError } from "./errors.js";
+import { Track, TrackFile, TrackMetadata } from "./metadata.js";
 import { invoke } from "./request.js";
 import { SpdlAuthLike, SpdlOptions } from "./types.js";
 import { getIdFromURL, validateURL } from "./url.js";
@@ -17,7 +17,7 @@ export const getTrackInfo = async (
     options: SpdlAuthLike
 ): Promise<Track> => {
     const auth = getAuth(options);
-    const track = await invoke(`${Endpoints.TRACKS_URL}${trackId}`, auth);
+    const track = await invoke(`${endpoints.TRACKS_URL}${trackId}`, auth);
 
     try {
         let artists: string[] = [];
@@ -58,6 +58,31 @@ export const getTrackInfo = async (
     }
 }
 
+export const getTrackMetadata = async (
+    contentId: string,
+    auth: SpdlAuth
+): Promise<TrackMetadata> => {
+    const meta = await invoke(`${endpoints.TRACK_METADATA_URL}${contentId}`, auth);
+
+    let files: TrackFile[] = [];
+    let rawFormats: string[] = [];
+
+    for (let file of meta["files"]) {
+        files.push({
+            id: file["file_id"],
+            rawFormat: file["format"]
+        });
+        rawFormats.push(file["format"]);
+    }
+
+    return {
+        contentId: meta["gid"],
+        name: meta["name"],
+        files,
+        rawFormats
+    }
+}
+
 /**
  * Downloads content from Spotify by it's URL.
  * 
@@ -69,7 +94,7 @@ export const getTrackInfo = async (
 export const spdl = (
     url: string,
     options: SpdlOptions
-) => {
+): Readable => {
     let auth: SpdlAuth;
     const stream = new PassThrough({
         highWaterMark: options.highWaterMark || 1024 * 512
@@ -96,21 +121,35 @@ export const spdl = (
         }
 
         getTrackInfo(trackId, auth).then((track) => {
-
-        });
+            downloadTrackFromInfo(stream, track, auth, options);
+        }, stream.emit.bind(stream, "error"));
     } else {
         throw new SpotifyAuthError("An invalid Spotify URL was provided.");
     }
+
+    return stream;
 }
 
-export const downloadTrackFromInfo = (
+export const downloadTrackFromInfo = async (
+    stream: PassThrough,
     track: Track,
+    auth: SpdlAuth,
     options: SpdlOptions = {}
 ) => {
-    let auth: SpdlAuth
+    if (!options.format) {
+        // Default to a reasonable quality
+        options.format = "vorbis_medium";
+    }
+
     let contentId = Buffer.from(base62.decode(track.trackId)).toString("hex");
-}
+    const info = await getTrackMetadata(contentId, auth);
 
-const getContentFeeder = (track: Track) => {
+    const rawFormat = formats[options.format];
+    if (!rawFormat) {
+        throw new SpotifyResolveError("format", "Invalid format provided.");
+    }
 
+    if (!info.rawFormats.includes(rawFormat)) {
+        throw new SpotifyError(`Format not available for track`)
+    }
 }

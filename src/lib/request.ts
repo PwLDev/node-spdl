@@ -8,7 +8,7 @@ export const getRequestHeader = (auth: SpdlAuth) => {
         "Authorization": `Bearer ${auth.accessToken}`,
         "Accept-Language": "*",
         "Content-Type": "application/json",
-        "app-platform": "Web-Player"
+        "app-platform": "WebPlayer"
     }
 }
 

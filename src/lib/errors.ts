@@ -26,6 +26,16 @@ export class SpotifyAuthError extends Error {
     }
 }
 
+export class SpotifyResolveError extends Error { 
+    constructor(
+        obj: string,
+        reason: string
+    ) {
+        super();
+        this.message = `Could not resolve ${obj}: ${reason}`;
+    }
+}
+
 export class SpotifyStreamError extends Error { 
     constructor(
         reason: string

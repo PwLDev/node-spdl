@@ -1,7 +1,7 @@
 import { getAuth, SpdlAuth } from "./auth.js";
-import { Endpoints } from "./const.js";
+import { endpoints } from "./const.js";
 import { SpotifyError, SpotifyAuthError } from "./errors.js";
-import { Lyrics } from "./metadata.js";
+import { Lyrics, LyricsLine } from "./metadata.js";
 import { invoke } from "./request.js";
 import { getTrackInfo } from "./track.js";
 import { SpdlAuthLike } from "./types.js";
@@ -13,10 +13,10 @@ import { validateURL, getIdFromURL } from "./url.js";
  * @param {string} url URL of the song.
  * @param {SpdlAuthLike} options Authenticate with the Spotify API
  */
-export const lyrics = (
+export const lyrics = async (
     url: string,
     options: SpdlAuthLike
-): Lyrics | null => {
+): Promise<Lyrics | null> => {
     let auth: SpdlAuth = getAuth(options);
 
     if (validateURL(url)) {
@@ -25,29 +25,35 @@ export const lyrics = (
             throw new SpotifyError("The Spotify URL is malformed.");
         }
 
-        let lyrics: Lyrics | null = null;
+        const track = await getTrackInfo(trackId, auth);
 
-        getTrackInfo(trackId, auth)
-        .then(async (track) => {
-            try {
-                const request = await invoke(
-                    `${Endpoints.TRACK_LYRICS_URL}${track.trackId}?format=json&vocalRemoval=false`,
-                    auth
-                );
+        try {
+            const request = await invoke(
+                `${endpoints.TRACK_LYRICS_URL}${track.trackId}?format=json&vocalRemoval=false`,
+                auth
+            );
 
-                const data = request["lyrics"];
-                lyrics = {
-                    track,
-                    lines: data["lines"],
-                    language: data["language"],
-                    provider: data["provider"] || "Spotify"
-                }
-            } catch (error) {
-                lyrics = null;
+            const data = request["lyrics"];
+            let lines: LyricsLine[] = [];
+
+            for (let line of data["lines"]) {
+                lines.push({
+                    startTimeMs: parseInt(line["startTimeMs"]),
+                    words: line["words"],
+                    syllables: line["syllables"],
+                    endTimeMs: parseInt(line["endTimeMs"])
+                });
             }
-        });
 
-        return lyrics;
+            return {
+                track,
+                lines,
+                language: data["language"],
+                provider: data["provider"] || "Spotify"
+            }
+        } catch (error) {
+            throw new Error(error as string)
+        }
     } else {
         throw new SpotifyAuthError("An invalid Spotify URL was provided.");
     }

@@ -1,15 +1,15 @@
 import fs from "node:fs";
 import { SpdlAuth } from "./auth.js";
 
-declare type SpdlAudioQuality = "vorbis_low" | "vorbis_medium" | "vorbis_high" | "aac_low" | "aac_high" | number;
-declare type SpdlAudioContainer = "m4a" | "ogg" | "mp3" | "webm";
+declare type SpdlAudioFormat = "vorbis_low" | "vorbis_medium" | "vorbis_high" | "mp3_low" | "mp4_low" | "mp4_high" | "mp4_high_dual";
+declare type SpdlAudioContainer = "ogg" | "mp3" | "webm" | "mp4";
 
 declare interface SpdlOptions {
     auth?: SpdlAuth;
     cookie?: string;
     accessToken?: string;
-    quality?: SpdlAudioQuality;
-    format?: SpdlAudioContainer;
+    format?: SpdlAudioFormat;
+    container?: SpdlAudioContainer;
     discrete?: boolean;
     metadata?: boolean;
     lyrics?: boolean;
