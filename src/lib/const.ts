@@ -1,13 +1,15 @@
-export const endpoints = {
+export const Endpoints = {
     "FOLLOWED_ARTISTS_URL": "https://api.spotify.com/v1/me/following?type=artist",
     "SAVED_TRACKS_URL": "https://api.spotify.com/v1/me/tracks/",
+    "STORAGE_RESOLVE_INTERACTIVE": "https://spclient.wg.spotify.com/storage-resolve/files/audio/interactive/",
+    "STORAGE_RESOLVE_INTERACTIVE_PREFETCH": "https://spclient.wg.spotify.com/storage-resolve/files/audio/interactive_prefetch/",
     "TRACKS_URL": "https://api.spotify.com/v1/tracks/",
     "TRACK_STATS_URL": "https://api.spotify.com/v1/audio-features/",
     "TRACK_LYRICS_URL": "https://spclient.wg.spotify.com/color-lyrics/v2/track/",
     "TRACK_METADATA_URL": "https://spclient.wg.spotify.com/metadata/4/track/"
 }
 
-export const codecs = {
+export const Codecs = {
     "aac": "aac",
     "fdk_aac": "libfdk_aac",
     "m4a": "aac",
@@ -17,7 +19,7 @@ export const codecs = {
     "vorbis": "copy",
 }
 
-export const formats = {
+export const Formats = {
     "vorbis_low": "OGG_VORBIS_96",
     "vorbis_medium": "OGG_VORBIS_160",
     "vorbis_high": "OGG_VORBIS_320",
@@ -27,7 +29,7 @@ export const formats = {
     "mp4_high": "MP4_128"
 }
 
-export const extensions = {
+export const Extensions = {
     "aac": "m4a",
     "fdk_aac": "m4a",
     "m4a": "m4a",

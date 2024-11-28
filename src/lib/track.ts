@@ -4,7 +4,7 @@ import {
 } from "node:stream";
 
 import { getAuth, SpdlAuth } from "./auth.js";
-import { endpoints, formats } from "./const.js";
+import { Endpoints, Formats } from "./const.js";
 import { base62 } from "./crypt.js";
 import { SpotifyAuthError, SpotifyError, SpotifyResolveError } from "./errors.js";
 import { Track, TrackFile, TrackMetadata } from "./metadata.js";
@@ -17,7 +17,7 @@ export const getTrackInfo = async (
     options: SpdlAuthLike
 ): Promise<Track> => {
     const auth = getAuth(options);
-    const track = await invoke(`${endpoints.TRACKS_URL}${trackId}`, auth);
+    const track = await invoke(`${Endpoints.TRACKS_URL}${trackId}`, auth);
 
     try {
         let artists: string[] = [];
@@ -62,7 +62,7 @@ export const getTrackMetadata = async (
     contentId: string,
     auth: SpdlAuth
 ): Promise<TrackMetadata> => {
-    const meta = await invoke(`${endpoints.TRACK_METADATA_URL}${contentId}`, auth);
+    const meta = await invoke(`${Endpoints.TRACK_METADATA_URL}${contentId}`, auth);
 
     let files: TrackFile[] = [];
     let rawFormats: string[] = [];
@@ -144,7 +144,7 @@ export const downloadTrackFromInfo = async (
     let contentId = Buffer.from(base62.decode(track.trackId)).toString("hex");
     const info = await getTrackMetadata(contentId, auth);
 
-    const rawFormat = formats[options.format];
+    const rawFormat = Formats[options.format];
     if (!rawFormat) {
         throw new SpotifyResolveError("format", "Invalid format provided.");
     }
