@@ -1,11 +1,7 @@
-import { request } from "undici";
+import undici from "undici";
 
 import { SpdlAuth } from "./auth.js";
 import { SpotifyApiError } from "./errors.js";
-
-export class AccesspointResolver {
-    
-}
 
 export const getRequestHeader = (auth: SpdlAuth) => {
     return {
@@ -24,7 +20,7 @@ export const call = async (
 ) => {
     if (refresh) auth.refresh();
     const headers = getRequestHeader(auth);
-    const req = await request(url, { headers: headers });
+    const req = await undici.request(url, { headers: headers });
 
     const json: any = await req.body.json();
     if (!json || json["error"]) {
@@ -37,22 +33,15 @@ export const call = async (
     return json;
 };
 
-export const proto = async (
+export const callRaw = async (
     url: string,
     auth: SpdlAuth,
     refresh: boolean = true
 ) => {
     if (refresh) auth.refresh();
     const headers = getRequestHeader(auth);
-    const req = await request(url, { headers: headers });
+    const req = await undici.request(url, { headers: headers });
 
-    const json: any = await req.body.json();
-    if (!json || json["error"]) {
-        const status = json["error"]["status"];
-        const message = json["error"]["message"];
-
-        throw new SpotifyApiError(status, message);
-    }
-
-    return json;
+    const buffer = await req.body.arrayBuffer();
+    return buffer
 };

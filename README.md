@@ -1,6 +1,10 @@
 # node-spdl
 A module to download content directly from Spotify's servers, written in Typescript, for Node.js, with native Node components.
 
+<div align="center">
+    <img src="https://file.var.foo/259fd420-e56a-4740-ae8e-7b92f8908d03-NodeSpdl.png">
+</div>
+
 > [!WARNING]
 > There is no guarantee your account will not be lost or taken down for using this package.
 > Use it at your own risk!
@@ -97,7 +101,7 @@ This package shouldn't take down your account at first use, however if you would
 This package does not save any username or password provided and neither sends them to third party services.
 The credentials provided will only interact with the Spotify API.
 
-This package does not use Widevine or DRM decryption for extracting the content.
+This package does not use Widevine for extracting the content.
 
 We are not related in any way with Spotify AB.
 

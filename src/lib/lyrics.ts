@@ -1,4 +1,4 @@
-import { getAuth, SpdlAuth } from "./auth.js";
+import { SpdlAuth } from "./auth.js";
 import { Endpoints } from "./const.js";
 import { SpotifyError, SpotifyAuthError } from "./errors.js";
 import { Lyrics, LyricsLine } from "./metadata.js";
