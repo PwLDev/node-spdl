@@ -9,7 +9,7 @@ export const Endpoints = {
     "TRACK_METADATA_URL": "https://spclient.wg.spotify.com/metadata/4/track/"
 }
 
-export const Codecs = {
+export const Codecs: Record<string, string> = {
     "aac": "aac",
     "fdk_aac": "libfdk_aac",
     "m4a": "aac",
@@ -19,17 +19,19 @@ export const Codecs = {
     "vorbis": "copy",
 }
 
-export const Formats = {
-    "vorbis_low": "OGG_VORBIS_96",
-    "vorbis_medium": "OGG_VORBIS_160",
-    "vorbis_high": "OGG_VORBIS_320",
-    "mp3_low": "MP3_96",
-    "mp4_low": "MP4_128",
-    "mp4_high_dual": "MP4_256_DUAL",
-    "mp4_high": "MP4_128"
+export const Formats: Record<string, string> = {
+    "OGG_VORBIS_96": "vorbis_low",
+    "OGG_VORBIS_160": "vorbis_medium",
+    "OGG_VORBIS_320": "vorbis_high",
+    "AAC_24": "aac_medium",
+    "MP3_96": "mp3_low",
+    "MP4_128": "mp4_low",
+    "MP4_128_DUAL": "mp4_low_dual",
+    "MP4_256": "mp4_high",
+    "MP4_256_DUAL": "mp4_high_dual",
 }
 
-export const Extensions = {
+export const Extensions: Record<string, string> = {
     "aac": "m4a",
     "fdk_aac": "m4a",
     "m4a": "m4a",

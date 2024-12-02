@@ -5,10 +5,10 @@ import {
 
 import { getAuth, SpdlAuth } from "./auth.js";
 import { Endpoints, Formats } from "./const.js";
-import { base62 } from "./crypt.js";
+import { base62 } from "./util.js";
 import { SpotifyAuthError, SpotifyError, SpotifyResolveError } from "./errors.js";
 import { Track, TrackFile, TrackMetadata } from "./metadata.js";
-import { invoke } from "./request.js";
+import { call } from "./request.js";
 import { SpdlAuthLike, SpdlOptions } from "./types.js";
 import { getIdFromURL, validateURL } from "./url.js";
 
@@ -17,7 +17,7 @@ export const getTrackInfo = async (
     options: SpdlAuthLike
 ): Promise<Track> => {
     const auth = getAuth(options);
-    const track = await invoke(`${Endpoints.TRACKS_URL}${trackId}`, auth);
+    const track = await call(`${Endpoints.TRACKS_URL}${trackId}`, auth);
 
     try {
         let artists: string[] = [];
@@ -62,7 +62,7 @@ export const getTrackMetadata = async (
     contentId: string,
     auth: SpdlAuth
 ): Promise<TrackMetadata> => {
-    const meta = await invoke(`${Endpoints.TRACK_METADATA_URL}${contentId}`, auth);
+    const meta = await call(`${Endpoints.TRACK_METADATA_URL}${contentId}`, auth);
 
     let files: TrackFile[] = [];
     let rawFormats: string[] = [];
@@ -70,16 +70,21 @@ export const getTrackMetadata = async (
     for (let file of meta["files"]) {
         files.push({
             id: file["file_id"],
-            rawFormat: file["format"]
+            format: Formats[file["format"]]
         });
-        rawFormats.push(file["format"]);
+        rawFormats.push(Formats[file["format"]]);
     }
 
     return {
         contentId: meta["gid"],
         name: meta["name"],
         files,
-        rawFormats
+        formats: rawFormats,
+        number: meta["number"],
+        discNumber: meta["disc_number"],
+        explicit: meta["explicit"] || false,
+        hasLyrics: meta["has_lyrics"] || false,
+        restriction: meta["restriction"] || undefined
     }
 }
 
@@ -149,7 +154,7 @@ export const downloadTrackFromInfo = async (
         throw new SpotifyResolveError("format", "Invalid format provided.");
     }
 
-    if (!info.rawFormats.includes(rawFormat)) {
+    if (!info.formats.includes(rawFormat)) {
         throw new SpotifyError(`Format not available for track`)
     }
 }

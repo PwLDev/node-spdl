@@ -1,15 +1,13 @@
 # node-spdl
 A module to download content directly from Spotify's servers, written in Typescript, for Node.js, with native Node components.
 
-<!-- <div align="center">
-    <img src="https://cdn.discordapp.com/attachments/1091932806206201857/1306323801700700212/NodeSpdl.png?ex=67364058&is=6734eed8&hm=6ee94ff12bc28bf4e7fbf8f552751a06417e32f5cc725f2fe10f3c6291278440&" alt="node-spdl graphic">
-</div> -->
-
 > [!WARNING]
 > There is no guarantee your account will not be lost or taken down for using this package.
 > Use it at your own risk!
 
 In contrast to other similar packages which download the song from YouTube, this package directly downloads from Spotify's servers, delivering a high-quality, uncompressed Readable stream.
+
+This package was originally made for **CountryBot** Discord Bot. Feel free to [join our Discord server](https://discord.com/invite/C78VU7Fmeh).
 
 ## Features
 - Downloads music tracks in different formats.
@@ -17,14 +15,14 @@ In contrast to other similar packages which download the song from YouTube, this
 - Downloads podcast episodes.
 - Easy to use Node based streaming.
 - Metadata tagging for MP3 files.
-- Export synced lyrics.
+- Exports synced lyrics.
 
 ## Requirements
 
 - Have a **valid Spotify account**.
 - Get a **Spotify cookie** from your browser. (or, you can use a non-anonymous Spotify access token and skip this requirement)
 
-**Non-anonymous** token refers to an access token which is get from a Spotify Account (logged in browser).
+**Non-anonymous** token refers to an access token which is got from a Spotify Account (logged in browser).
 Yet a cookie is a better option due to the fact that the access token can automatically refresh after expiry time.
 
 ### How to get a cookie? 🍪

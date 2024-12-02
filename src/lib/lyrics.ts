@@ -2,7 +2,7 @@ import { getAuth, SpdlAuth } from "./auth.js";
 import { Endpoints } from "./const.js";
 import { SpotifyError, SpotifyAuthError } from "./errors.js";
 import { Lyrics, LyricsLine } from "./metadata.js";
-import { invoke } from "./request.js";
+import { call } from "./request.js";
 import { getTrackInfo } from "./track.js";
 import { SpdlAuthLike } from "./types.js";
 import { validateURL, getIdFromURL } from "./url.js";
@@ -28,7 +28,7 @@ export const lyrics = async (
         const track = await getTrackInfo(trackId, auth);
 
         try {
-            const request = await invoke(
+            const request = await call(
                 `${Endpoints.TRACK_LYRICS_URL}${track.trackId}?format=json&vocalRemoval=false`,
                 auth
             );

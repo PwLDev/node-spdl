@@ -26,14 +26,19 @@ declare interface Track {
 
 declare interface TrackFile {
     id: string;
-    rawFormat: string;
+    format: string;
 }
 
 declare interface TrackMetadata {
     contentId: string;
     name: string;
     files: TrackFile[];
-    rawFormats: string[];
+    formats: string[];
+    number: number;
+    discNumber: number;
+    explicit: boolean;
+    hasLyrics: boolean;
+    restriction?: [{ countriesAllowed: string }, ...any];
 }
 
 export {
