@@ -5,9 +5,7 @@ export declare type SpdlAudioQuality = "vorbis_low" | "vorbis_medium" | "vorbis_
 export declare type SpdlAudioContainer = "ogg" | "mp3" | "webm" | "mp4";
 
 export declare interface SpdlOptions {
-    auth?: SpdlAuth;
-    cookie?: string;
-    accessToken?: string;
+    auth: SpdlAuth;
     format?: SpdlAudioQuality;
     container?: SpdlAudioContainer;
     discrete?: boolean;

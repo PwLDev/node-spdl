@@ -3,7 +3,7 @@ import {
     Readable
 } from "node:stream";
 
-import { getAuth, SpdlAuth } from "./auth.js";
+import { SpdlAuth } from "./auth.js";
 import { Endpoints, Formats } from "./const.js";
 import { base62 } from "./util.js";
 import { SpotifyAuthError, SpotifyError, SpotifyResolveError } from "./errors.js";
@@ -14,9 +14,8 @@ import { getIdFromURL, validateURL } from "./url.js";
 
 export const getTrackInfo = async (
     trackId: string,
-    options: SpdlAuthLike
+    auth: SpdlAuth
 ): Promise<Track> => {
-    const auth = getAuth(options);
     const track = await call(`${Endpoints.TRACKS_URL}${trackId}`, auth);
 
     try {

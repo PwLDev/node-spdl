@@ -15,10 +15,8 @@ import { validateURL, getIdFromURL } from "./url.js";
  */
 export const lyrics = async (
     url: string,
-    options: SpdlAuthLike
+    auth: SpdlAuth
 ): Promise<Lyrics | null> => {
-    let auth: SpdlAuth = getAuth(options);
-
     if (validateURL(url)) {
         const trackId = getIdFromURL(url);
         if (!trackId) {
