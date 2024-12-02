@@ -7,7 +7,7 @@ export interface StorageResolveResponse {
     fileid: any;
 }
 
-export const getProto = async (
+export const resolveProto = async (
     buffer: Buffer, 
     file: string,
     message: string

@@ -9,7 +9,7 @@ import { TrackFile, TrackMetadata } from "./metadata.js";
 import { getTrackMetadata } from "./track.js";
 import { SpdlAudioQuality } from "./types.js";
 import { Packet } from "./crypto.js";
-import { getProto, StorageResolveResponse } from "./proto.js";
+import { resolveProto, StorageResolveResponse } from "./proto.js";
 import { call, callRaw } from "./request.js";
 import { base62 } from "./util.js";
 
@@ -140,7 +140,7 @@ export class PlayableContentFeeder {
             throw new SpotifyStreamError("The file could not be fetched from the storage.");
         }
 
-        const storageResolve: StorageResolveResponse = await getProto(
+        const storageResolve: StorageResolveResponse = await resolveProto(
             Buffer.from(response), 
             "storage-resolve", 
             "StorageResolveResponse"
