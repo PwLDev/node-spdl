@@ -100,24 +100,9 @@ export const spdl = (
     url: string,
     options: SpdlOptions
 ): Readable => {
-    let auth: SpdlAuth;
     const stream = new PassThrough({
         highWaterMark: options.highWaterMark || 1024 * 512
     });
-
-    if (options.auth) {
-        auth = options.auth;
-    } else {
-        if (options.accessToken) {
-            auth = new SpdlAuth({ accessToken: options.accessToken });
-        } else {
-            if (options.cookie) {
-                auth = new SpdlAuth({ cookie: options.cookie });
-            } else {
-                throw new SpotifyAuthError(`A valid "sp_dc" cookie, non-anonymous access token or SpdlAuth must be provided.`);
-            }
-        }
-    }
 
     if (validateURL(url)) {
         const trackId = getIdFromURL(url);
@@ -125,8 +110,8 @@ export const spdl = (
             throw new SpotifyError("The Spotify URL is malformed.");
         }
 
-        getTrackInfo(trackId, auth).then((track) => {
-            downloadTrackFromInfo(stream, track, auth, options);
+        getTrackInfo(trackId, options.auth).then((track) => {
+            downloadTrackFromInfo(stream, track, options.auth, options);
         }, stream.emit.bind(stream, "error"));
     } else {
         throw new SpotifyAuthError("An invalid Spotify URL was provided.");
@@ -139,7 +124,7 @@ export const downloadTrackFromInfo = async (
     stream: PassThrough,
     track: Track,
     auth: SpdlAuth,
-    options: SpdlOptions = {}
+    options: SpdlOptions
 ) => {
     if (!options.format) {
         // Default to a reasonable quality
