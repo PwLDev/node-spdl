@@ -2,9 +2,9 @@ import path from "node:path";
 import proto from "protobufjs";
 
 export interface StorageResolveResponse {
-    cdnurl: string[]
+    cdnurl: string[];
     result: "CDN" | "STORAGE" | "RESTRICTED" | "UNRECOGNIZED";
-    fileid: any;
+    fileid: string;
 }
 
 export const resolveProto = async (
@@ -13,7 +13,7 @@ export const resolveProto = async (
     message: string
 ): Promise<any> => {
     const root: proto.Root = await proto.load(
-        path.resolve(__dirname, `../proto/${file}.proto`)
+        path.resolve(`./src/proto/${file}.proto`)
     );
 
     const messageType = root.lookupType(message);

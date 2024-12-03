@@ -1,5 +1,5 @@
-import { SpotifyResolveError } from "./errors";
-import { base62 } from "./util";
+import { SpotifyResolveError } from "./errors.js";
+import { base62 } from "./util.js";
 
 export abstract class SpotifyEntity {
     public id: string;
@@ -17,7 +17,7 @@ export abstract class SpotifyEntity {
 
     static parseUrl(url: string): { id: string, type: string } | null
     {
-        const regex = /(?:spotify:(?<type>[a-z]+):(?<id>[a-zA-Z0-9]+)|open\.spotify\.com\/(?<type>[a-z]+)\/(?<id>[a-zA-Z0-9]+))/;
+        const regex = new RegExp("(?:spotify:(?<type>[a-z]+):(?<id>[a-zA-Z0-9]+)|open\.spotify\.com\/(?<type>[a-z]+)\/(?<id>[a-zA-Z0-9]+))");
         const match = url.match(regex);
 
         if (match?.groups?.id && match?.groups?.type) {
@@ -48,6 +48,24 @@ export abstract class PlayableEntity extends SpotifyEntity {
 
     isPlayable(): boolean {
         return this.type !== "unknown";
+    }
+}
+
+export class EpisodeEntity extends PlayableEntity {
+    constructor(url: string) {
+        super(url);
+        if (this.type !== "episode") {
+            throw new SpotifyResolveError("URL", `Invalid track URL: ${url}`);
+        }
+    }
+
+    toBase62(): string {
+        const buffer = Buffer.from(base62.decode(this.id));
+        return buffer.toString("hex");
+    }
+
+    isPlayable(): boolean {
+        return true;
     }
 }
 
@@ -89,6 +107,8 @@ export const createSpotifyEntity = (url: string): SpotifyEntity => {
     }
 
     switch (parsed.type) {
+        case "episode":
+            return new EpisodeEntity(url);
         case "playlist":
             return new PlaylistEntity(url);
         case "track":

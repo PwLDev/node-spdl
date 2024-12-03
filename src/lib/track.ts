@@ -11,6 +11,7 @@ import { Track, TrackFile, TrackMetadata } from "./metadata.js";
 import { call } from "./request.js";
 import { SpdlAuthLike, SpdlOptions } from "./types.js";
 import { getIdFromURL, validateURL } from "./url.js";
+import { createSpotifyEntity, PlayableEntity, PlaylistEntity } from "./entity.js";
 
 export const getTrackInfo = async (
     trackId: string,
@@ -104,14 +105,12 @@ export const spdl = (
     });
 
     if (validateURL(url)) {
-        const trackId = getIdFromURL(url);
-        if (!trackId) {
-            throw new SpotifyError("The Spotify URL is malformed.");
+        const content = createSpotifyEntity(url);
+        if (!(content instanceof PlayableEntity)) {
+            throw new SpotifyError("An unplayable Spotify entity was provided.");
         }
 
-        getTrackInfo(trackId, options.auth).then((track) => {
-            downloadTrackFromInfo(stream, track, options.auth, options);
-        }, stream.emit.bind(stream, "error"));
+        downloadContentFromInfo(stream, content, options.auth, options);
     } else {
         throw new SpotifyAuthError("An invalid Spotify URL was provided.");
     }
@@ -119,9 +118,9 @@ export const spdl = (
     return stream;
 }
 
-export const downloadTrackFromInfo = async (
+export const downloadContentFromInfo = async (
     stream: PassThrough,
-    track: Track,
+    content: PlayableEntity,
     auth: SpdlAuth,
     options: SpdlOptions
 ) => {
@@ -130,15 +129,8 @@ export const downloadTrackFromInfo = async (
         options.format = "vorbis_medium";
     }
 
-    let contentId = Buffer.from(base62.decode(track.trackId)).toString("hex");
-    const info = await getTrackMetadata(contentId, auth);
-
     const rawFormat = Formats[options.format];
     if (!rawFormat) {
         throw new SpotifyResolveError("format", "Invalid format provided.");
-    }
-
-    if (!info.formats.includes(rawFormat)) {
-        throw new SpotifyError(`Format not available for track`)
     }
 }

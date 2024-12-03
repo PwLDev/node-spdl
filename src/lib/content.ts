@@ -37,9 +37,14 @@ export class AudioKeyManager {
 
 export class CDNFeeder {
     auth: SpdlAuth;
+    stream: PassThrough;
 
-    constructor(auth: SpdlAuth) {
+    constructor(
+        auth: SpdlAuth,
+        stream: PassThrough
+    ) {
         this.auth = auth;
+        this.stream = stream;
     }
 
     private getUrl(response: StorageResolveResponse): string {
@@ -51,11 +56,9 @@ export class CDNFeeder {
     }
 
     loadTrack(
-        stream: PassThrough,
         track: TrackMetadata,
         file: TrackFile,
         response: StorageResolveResponse | string,
-        preload: boolean
     ) {
         let url: string;
         if (typeof response !== "string") {
@@ -70,19 +73,24 @@ export class CDNFeeder {
 
 export class PlayableContentFeeder {
     auth: SpdlAuth;
-    cdn: CDNFeeder
+    cdn: CDNFeeder;
+    preload: boolean;
+    stream: PassThrough;
 
-    constructor(auth: SpdlAuth) {
+    constructor(
+        auth: SpdlAuth, 
+        stream: PassThrough,
+        preload: boolean = false
+    ) {
         this.auth = auth;
-        this.cdn = new CDNFeeder(auth);
+        this.cdn = new CDNFeeder(auth, stream);
+        this.preload = preload;
+        this.stream = stream;
     }
 
     async load(
         entity: PlayableEntity,
-        quality: SpdlAudioQuality,
-        preload: boolean,
-        auth: SpdlAuth,
-        stream: PassThrough
+        quality: SpdlAudioQuality
     ) {
         if (!(entity instanceof PlayableEntity)) {
             throw new SpotifyResolveError("entity", "Entity is not instance of PlayableEntity");
@@ -95,30 +103,26 @@ export class PlayableContentFeeder {
 
     async loadStream(
         file: TrackFile,
-        content: TrackMetadata,
-        preload: boolean,
-        auth: SpdlAuth
+        content: TrackMetadata
     ) {
         if (!content) {
             throw new SpotifyStreamError("Content is unknown.");
         }
 
-        const response = await this.resolveStorage(file.id, preload, auth);
+        const response = await this.resolveStorage(file.id);
         switch (response.result) {
             case "CDN":
-
+                return this.cdn.loadTrack(content, file, response);
         }
     }
 
     async loadTrack(
         trackLike: TrackEntity | TrackMetadata,
-        quality: SpdlAudioQuality,
-        preload: boolean,
-        auth: SpdlAuth
+        quality: SpdlAudioQuality
     ) {
         let track: TrackMetadata;
         if (trackLike instanceof TrackEntity) {
-            const original = await getTrackMetadata(trackLike.toBase62(), auth);
+            const original = await getTrackMetadata(trackLike.toBase62(), this.auth);
             track = original;
         } else {
             track = trackLike;
@@ -129,13 +133,13 @@ export class PlayableContentFeeder {
             throw new SpotifyStreamError("The track is not available in the selected quality.");
         }
 
-        return this.loadStream(file, track, preload, auth);
+        return this.loadStream(file, track);
     }
 
-    private async resolveStorage(fileId: string, preload: boolean, auth: SpdlAuth) {
-        const endpoint = preload ? Endpoints.STORAGE_RESOLVE_INTERACTIVE_PREFETCH : Endpoints.STORAGE_RESOLVE_INTERACTIVE;
+    private async resolveStorage(fileId: string) {
+        const endpoint = this.preload ? Endpoints.STORAGE_RESOLVE_INTERACTIVE_PREFETCH : Endpoints.STORAGE_RESOLVE_INTERACTIVE;
         const contentId = Buffer.from(base62.decode(fileId)).toString("hex");
-        const response = await callRaw(`${endpoint}${contentId}`, auth);
+        const response = await callRaw(`${endpoint}${contentId}`, this.auth);
         if (!response) {
             throw new SpotifyStreamError("The file could not be fetched from the storage.");
         }
