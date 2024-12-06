@@ -2,6 +2,7 @@ import { Message } from "protobufjs";
 import undici from "undici";
 import unplayplay from "unplayplay";
 
+import { Endpoints } from "./const.js";
 import { SpotifyApiError, SpotifyAuthError } from "./errors.js";
 import { SpdlAuthLike, SpdlAuthOptions } from "./types.js";
 import { ContentType, PlayPlayLicenseRequest, PlayPlayLicenseResponse } from "./proto.js";
@@ -50,18 +51,8 @@ export class SpdlAuth {
                 method: "GET",
                 headers: {
                     "Accept": "application/json",
-                    "Accept-Encoding": "gzip, deflate, br",
-                    "Accept-Language": "en",
                     "App-Platform": "WebPlayer",
-                    "Connection": "keep-alive",
                     "Cookie": `sp_dc=${this.cookie}`,
-                    "Host": "open.spotify.com",
-                    "Sec-Fetch-Dest": "empty",
-                    "Sec-Fetch-Mode": "cors",
-                    "Sec-Fetch-Site": "same-origin",
-                    "Spotify-App-Version": "1.2.33.0-unknown",
-                    "TE": "trailers",
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0",
                 }
             }
         );
@@ -94,9 +85,7 @@ export class SpdlAuth {
     getProtoHeaders(): Record<string, string> {
         return {
             "Authorization": `Bearer ${this.accessToken}`,
-            "Content-Type": "application/x-protobuf",
-            "Accept": "application/json",
-            "app-platform": "WebPlayer"
+            "Accept": "*"
         }
     }
 
@@ -114,11 +103,11 @@ export class SpdlAuth {
         );
         const content: any = PlayPlayLicenseResponse.decode(request);
 
-        if (!content["obfuscated_key"]) {
+        if (!content["obfuscatedKey"]) {
             throw new SpotifyAuthError("No PlayPlay license was provided by the response.");
         }
 
-        const key = unplayplay.deobfuscateKey(Buffer.from(fileId, "hex"), content["obfuscated_key"]);
+        const key = unplayplay.deobfuscateKey(Buffer.from(fileId, "hex"), content["obfuscatedKey"]);
         return key;
     }
 
@@ -127,10 +116,10 @@ export class SpdlAuth {
         fileId: string
     ): Promise<Buffer> {
         const request = await undici.request(
-            `https://gue1-spclient.spotify.com/playplay/v1/key/${fileId}`,
+            `${Endpoints.PLAYPLAY}${fileId}`,
             {
                 method: "POST",
-                body: challenge,
+                body: Buffer.from("CAMSEAGny+DVFTUfacKr9zszemsgASgBMOfG9I8G", "base64"),
                 headers: this.getProtoHeaders()
             }
         )

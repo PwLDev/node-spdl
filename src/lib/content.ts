@@ -38,33 +38,23 @@ export class CDNFeeder {
         }
 
         if (file.format.startsWith("vorbis")) {
-            const aesKey = await this.auth.getPlayPlayKey(file.id);
+            const aesKey: Buffer = await this.auth.getPlayPlayKey(file.id);
 
             try {
-                await undici.stream(
-                    url,
-                    { method: "GET" },
-                    (dispatcher: any) => {
-                        const { body } = dispatcher;
+                const { body } = await undici.request(url, { method: "GET" });
 
-                        if (!body) {
-                            throw new SpotifyStreamError("Could not get raw file data.");
+                const decryptStream = createStreamDecryptor(aesKey, file.format);
+
+                return pipeline(
+                    body,
+                    decryptStream,
+                    this.stream,
+                    (error) => {
+                        if (error) {
+                            throw new SpotifyStreamError("Failed to decrypt raw file");
                         }
-
-                        const decryptStream = createStreamDecryptor(aesKey);
-
-                        return pipeline(
-                            body,
-                            decryptStream,
-                            this.stream,
-                            (error) => {
-                                if (error) {
-                                    throw new SpotifyStreamError("Failed to decrypt raw file");
-                                }
-                            }
-                        );
                     }
-                )
+                );
             } catch (error) {
                 this.stream.destroy(error as any);
             }
@@ -129,7 +119,7 @@ export class PlayableContentFeeder {
             track = trackLike;
         }
 
-        const file = track.files.find((f) => f.format == quality);
+        const file = track.files.find((f) => f.format.startsWith(quality));
         if (!file) {
             throw new SpotifyStreamError("The track is not available in the selected quality.");
         }
@@ -139,8 +129,7 @@ export class PlayableContentFeeder {
 
     private async resolveStorage(fileId: string) {
         const endpoint = this.preload ? Endpoints.STORAGE_RESOLVE_INTERACTIVE_PREFETCH : Endpoints.STORAGE_RESOLVE_INTERACTIVE;
-        const contentId = Buffer.from(base62.decode(fileId)).toString("hex");
-        const response: StorageResolveResponse = await call(`${endpoint}${contentId}?version=10000000&product=9&platform=39&alt=json`, this.auth);
+        const response: StorageResolveResponse = await call(`${endpoint}${fileId}?version=10000000&product=9&platform=39&alt=json`, this.auth);
         if (!response) {
             throw new SpotifyStreamError("The file could not be fetched from the storage.");
         }
