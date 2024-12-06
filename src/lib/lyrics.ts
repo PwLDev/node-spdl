@@ -3,7 +3,7 @@ import { Endpoints } from "./const.js";
 import { SpotifyError, SpotifyAuthError } from "./errors.js";
 import { Lyrics, LyricsLine } from "./metadata.js";
 import { call } from "./request.js";
-import { getTrackInfo } from "./track.js";
+import { getTrackInfo } from "./download.js";
 import { SpdlAuthLike } from "./types.js";
 import { validateURL, getIdFromURL } from "./url.js";
 

@@ -1,4 +1,5 @@
 export const Endpoints = {
+    "HOME_PAGE_URL": "https://open.spotify.com/",
     "FOLLOWED_ARTISTS_URL": "https://api.spotify.com/v1/me/following?type=artist",
     "SAVED_TRACKS_URL": "https://api.spotify.com/v1/me/tracks/",
     "STORAGE_RESOLVE_INTERACTIVE": "https://spclient.wg.spotify.com/storage-resolve/files/audio/interactive/",

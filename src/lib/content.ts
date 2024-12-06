@@ -1,39 +1,17 @@
 
-import { PassThrough } from "node:stream";
+import { PassThrough, pipeline } from "node:stream";
+import undici from "undici";
 
 import { SpdlAuth } from "./auth.js";
 import { Endpoints } from "./const.js";
+import { createStreamDecryptor } from "./crypto.js";
+import { getTrackMetadata } from "./download.js";
 import { PlayableEntity, TrackEntity } from "./entity.js";
-import { SpotifyResolveError, SpotifyStreamError } from "./errors";
-import { TrackFile, TrackMetadata } from "./metadata.js";
-import { getTrackMetadata } from "./track.js";
+import { SpotifyResolveError, SpotifyStreamError } from "./errors.js";
+import { StorageResolveResponse, TrackFile, TrackMetadata } from "./metadata.js";
+import { call } from "./request.js";
 import { SpdlAudioQuality } from "./types.js";
-import { Packet } from "./crypto.js";
-import { resolveProto, StorageResolveResponse } from "./proto.js";
-import { call, callRaw } from "./request.js";
 import { base62 } from "./util.js";
-
-export class AudioKeyManager {
-    auth: SpdlAuth;
-    timeout: number = 20;
-    zero = Buffer.from([0x00, 0x00]);
-
-    constructor(auth: SpdlAuth) {
-        this.auth = auth;
-    }
-
-    getAudioKey(
-        gid: string,
-        fileId: string
-    ) {
-        let seq: number;
-        let out = Buffer.alloc(0);
-        out.write(fileId);
-        out.write(gid);
-        out.writeInt16BE(1);
-        out.write(this.zero.toString("hex"));
-    }
-}
 
 export class CDNFeeder {
     auth: SpdlAuth;
@@ -47,27 +25,50 @@ export class CDNFeeder {
         this.stream = stream;
     }
 
-    private getUrl(response: StorageResolveResponse): string {
-        let selectedUrl = response.cdnurl[Math.floor(Math.random() * response.cdnurl.length)];
-        do {
-            selectedUrl = response.cdnurl[Math.floor(Math.random() * response.cdnurl.length)]
-        } while (selectedUrl.includes("audio4-gm-fb") || selectedUrl.includes("audio-gm-fb"));
-        return selectedUrl;
-    }
-
-    loadTrack(
+    async loadTrack(
         track: TrackMetadata,
         file: TrackFile,
         response: StorageResolveResponse | string,
     ) {
         let url: string;
         if (typeof response !== "string") {
-            url = this.getUrl(response);
+            url = response.cdnurl[0];
         } else {
             url = response;
         }
 
+        if (file.format.startsWith("vorbis")) {
+            const aesKey = await this.auth.getPlayPlayKey(file.id);
 
+            try {
+                await undici.stream(
+                    url,
+                    { method: "GET" },
+                    (dispatcher: any) => {
+                        const { body } = dispatcher;
+
+                        if (!body) {
+                            throw new SpotifyStreamError("Could not get raw file data.");
+                        }
+
+                        const decryptStream = createStreamDecryptor(aesKey);
+
+                        return pipeline(
+                            body,
+                            decryptStream,
+                            this.stream,
+                            (error) => {
+                                if (error) {
+                                    throw new SpotifyStreamError("Failed to decrypt raw file");
+                                }
+                            }
+                        );
+                    }
+                )
+            } catch (error) {
+                this.stream.destroy(error as any);
+            }
+        }
     }
 }
 
@@ -112,7 +113,7 @@ export class PlayableContentFeeder {
         const response = await this.resolveStorage(file.id);
         switch (response.result) {
             case "CDN":
-                return this.cdn.loadTrack(content, file, response);
+                return await this.cdn.loadTrack(content, file, response);
         }
     }
 
@@ -139,16 +140,11 @@ export class PlayableContentFeeder {
     private async resolveStorage(fileId: string) {
         const endpoint = this.preload ? Endpoints.STORAGE_RESOLVE_INTERACTIVE_PREFETCH : Endpoints.STORAGE_RESOLVE_INTERACTIVE;
         const contentId = Buffer.from(base62.decode(fileId)).toString("hex");
-        const response = await callRaw(`${endpoint}${contentId}`, this.auth);
+        const response: StorageResolveResponse = await call(`${endpoint}${contentId}?version=10000000&product=9&platform=39&alt=json`, this.auth);
         if (!response) {
             throw new SpotifyStreamError("The file could not be fetched from the storage.");
         }
 
-        const storageResolve: StorageResolveResponse = await resolveProto(
-            Buffer.from(response), 
-            "storage-resolve", 
-            "StorageResolveResponse"
-        );
-        return storageResolve;
+        return response;
     }
 }

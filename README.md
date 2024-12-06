@@ -5,13 +5,9 @@ A module to download content directly from Spotify's servers, written in Typescr
     <img src="https://file.var.foo/259fd420-e56a-4740-ae8e-7b92f8908d03-NodeSpdl.png">
 </div>
 
-> [!WARNING]
-> There is no guarantee your account will not be lost or taken down for using this package.
-> Use it at your own risk!
-
 In contrast to other similar packages which download the song from YouTube, this package directly downloads from Spotify's servers, delivering a high-quality, uncompressed Readable stream.
 
-This package was originally made for **CountryBot** Discord Bot. Feel free to [join our Discord server](https://discord.com/invite/C78VU7Fmeh).
+> This package was originally made for **CountryBot** Discord Bot. Feel free to [join our Discord server](https://discord.com/invite/C78VU7Fmeh).
 
 ## Features
 - Downloads music tracks in different formats.

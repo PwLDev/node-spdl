@@ -11,6 +11,7 @@ export declare interface SpdlOptions {
     discrete?: boolean;
     metadata?: boolean;
     lyrics?: boolean;
+    preload?: boolean;
     highWaterMark?: number;
     ffmpegPath?: fs.PathLike;
 }

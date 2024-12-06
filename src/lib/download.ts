@@ -5,13 +5,13 @@ import {
 
 import { SpdlAuth } from "./auth.js";
 import { Endpoints, Formats } from "./const.js";
-import { base62 } from "./util.js";
-import { SpotifyAuthError, SpotifyError, SpotifyResolveError } from "./errors.js";
+import { createSpotifyEntity, PlayableEntity, PlaylistEntity, TrackEntity } from "./entity.js";
+import { SpotifyAuthError, SpotifyError, SpotifyResolveError, SpotifyStreamError } from "./errors.js";
 import { Track, TrackFile, TrackMetadata } from "./metadata.js";
 import { call } from "./request.js";
 import { SpdlAuthLike, SpdlOptions } from "./types.js";
 import { getIdFromURL, validateURL } from "./url.js";
-import { createSpotifyEntity, PlayableEntity, PlaylistEntity } from "./entity.js";
+import { PlayableContentFeeder } from "./content.js";
 
 export const getTrackInfo = async (
     trackId: string,
@@ -112,6 +112,7 @@ export const spdl = (
 
         downloadContentFromInfo(stream, content, options.auth, options);
     } else {
+        stream.destroy();
         throw new SpotifyAuthError("An invalid Spotify URL was provided.");
     }
 
@@ -129,8 +130,19 @@ export const downloadContentFromInfo = async (
         options.format = "vorbis_medium";
     }
 
-    const rawFormat = Formats[options.format];
-    if (!rawFormat) {
-        throw new SpotifyResolveError("format", "Invalid format provided.");
+    if (!options.preload) {
+        options.preload = false;
     }
+
+    let metadata!: TrackMetadata
+    if (content instanceof TrackEntity) {
+        metadata = await getTrackMetadata(content.toBase62(), auth);
+    }
+
+    if (!metadata.formats.includes(options.format)) {
+        throw new SpotifyStreamError("Format provided is not supported by this content.");
+    }
+
+    const feeder = new PlayableContentFeeder(auth, stream, options.preload);
+    await feeder.load(content, options.format);
 }

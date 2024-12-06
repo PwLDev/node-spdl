@@ -12,6 +12,12 @@ declare interface Lyrics {
     language?: string;
 }
 
+declare interface StorageResolveResponse {
+    cdnurl: string[];
+    result: "CDN" | "STORAGE" | "RESTRICTED" | "UNRECOGNIZED";
+    fileid: string;
+}
+
 declare interface Track {
     artists: string[];
     albumName: string;
@@ -41,9 +47,11 @@ declare interface TrackMetadata {
     restriction?: [{ countriesAllowed: string }, ...any];
 }
 
+
 export {
     LyricsLine,
     Lyrics,
+    StorageResolveResponse,
     Track,
     TrackFile,
     TrackMetadata

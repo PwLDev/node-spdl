@@ -3,23 +3,13 @@ import undici from "undici";
 import { SpdlAuth } from "./auth.js";
 import { SpotifyApiError } from "./errors.js";
 
-export const getRequestHeader = (auth: SpdlAuth) => {
-    return {
-        "Authorization": `Bearer ${auth.accessToken}`,
-        "Accept": "application/json",
-        "Accept-Language": "*",
-        "Content-Type": "application/json",
-        "app-platform": "WebPlayer"
-    }
-}
-
 export const call = async (
     url: string,
     auth: SpdlAuth,
     refresh: boolean = true
 ) => {
     if (refresh) auth.refresh();
-    const headers = getRequestHeader(auth);
+    const headers = auth.getHeaders();
     const req = await undici.request(url, { headers: headers });
 
     const json: any = await req.body.json();
@@ -39,7 +29,7 @@ export const callRaw = async (
     refresh: boolean = true
 ) => {
     if (refresh) auth.refresh();
-    const headers = getRequestHeader(auth);
+    const headers = auth.getHeaders();
     const req = await undici.request(url, { headers: headers });
 
     const buffer = await req.body.arrayBuffer();

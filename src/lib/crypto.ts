@@ -1,42 +1,60 @@
-import crypto from "node:crypto";
-// TODO: decrypt aes
+import { createDecipheriv } from "node:crypto";
+import { Transform, TransformCallback } from "node:stream";
 
-export class Packet {
-    command: Buffer;
-    payload: Buffer;
-    secretBlock = Buffer.from([0x02]);
-    ping = Buffer.from([0x04]);
-    streamChunk = Buffer.from([0x08]);
-    streamChunkRes = Buffer.from([0x09]);
-    channelError = Buffer.from([0x0a]);
-    channelAbort = Buffer.from([0x0b]);
-    requestKey = Buffer.from([0x0c]);
-    aesKey = Buffer.from([0x0d]);
-    aesKeyError = Buffer.from([0x0e]);
-    image = Buffer.from([0x19]);
-    countryCode = Buffer.from([0x1b]);
-    pong = Buffer.from([0x49]);
-    pongAck = Buffer.from([0x4a]);
-    pause = Buffer.from([0x4b]);
-    productInfo = Buffer.from([0x50]);
-    legacyWelcome = Buffer.from([0x69]);
-    licenseVersion = Buffer.from([0x76]);
-    login = Buffer.from([0xab]);
-    apWelcome = Buffer.from([0xac]);
-    authFailure = Buffer.from([0xad]);
-    trackEndedTime = Buffer.from([0x82]);
-    unknownDataAllZeros = Buffer.from([0x1f]);
-    preferredLocale = Buffer.from([0x74]);
-    unknown0x4f = Buffer.from([0x4f]);
-    unknown0x0f = Buffer.from([0x0f]);
-    unknown0x10 = Buffer.from([0x10]);
-    
-    constructor(command: Buffer, payload: Buffer) {
-        this.command = command;
-        this.payload = payload;
-    }
+const NONCE = Buffer.from("72E067FBDDCBCF77", "hex");
+const INITIAL_VALUE = Buffer.from("EBE8BC643F630D93", "hex");
+const COMBINED = Buffer.concat([NONCE, INITIAL_VALUE]);
 
-    isCommand(command: Buffer): boolean {
-        return command === this.command;
-    }
+/**
+ * Decrypts content from Spotify's CDN using it's decryption algorithm.
+ * @param {Buffer} data Content buffer to decrypt
+ * @param {Buffer} key AES decryption key
+ * @returns Decrypted content
+ */
+export const decryptContent = (
+    data: Buffer,
+    key: Buffer
+) => {
+    const decipher = createDecipheriv(
+        "aes-128-ctr",
+        key,
+        INITIAL_VALUE
+    );
+    return decipher.update(data);
+}
+
+/**
+ * Decrypts content from Spotify's CDN as a stream using it's decryption algorithm.
+ * @param {Buffer} key AES decryption key
+ * @returns Transform decrypted stream
+ */
+export const createStreamDecryptor = (key: Buffer) => {
+    const decipher = createDecipheriv(
+        "aes-128-ctr",
+        key,
+        INITIAL_VALUE
+    );
+
+    return new Transform({
+        transform(
+            chunk: Buffer, 
+            encoding: BufferEncoding, 
+            callback: TransformCallback
+        ) {
+            try {
+                const decrypted = decipher.update(chunk);
+                callback(null, decrypted);
+            } catch (error: any) {
+                callback(error);
+            }
+        },
+        flush(callback: TransformCallback) {
+            try {
+                const final = decipher.final();
+                callback(null, final);
+            } catch (error: any) {
+                callback(error);
+            }
+        }
+    });
 }
