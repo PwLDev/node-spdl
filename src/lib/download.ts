@@ -67,7 +67,7 @@ export const getTrackMetadata = async (
     let files: TrackFile[] = [];
     let rawFormats: string[] = [];
 
-    for (let file of meta["files"]) {
+    for (let file of meta["file"]) {
         files.push({
             id: file["file_id"],
             format: Formats[file["format"]]

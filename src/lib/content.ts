@@ -98,7 +98,7 @@ export class PlayableContentFeeder {
         }
 
         if (entity instanceof TrackEntity) {
-
+            await this.loadTrack(entity, quality);
         }
     }
 

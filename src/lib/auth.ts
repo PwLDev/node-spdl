@@ -1,8 +1,10 @@
+import { Message } from "protobufjs";
 import undici from "undici";
 import unplayplay from "unplayplay";
 
-import { SpotifyAuthError } from "./errors.js";
+import { SpotifyApiError, SpotifyAuthError } from "./errors.js";
 import { SpdlAuthLike, SpdlAuthOptions } from "./types.js";
+import { ContentType, PlayPlayLicenseRequest, PlayPlayLicenseResponse } from "./proto.js";
 
 /**
  * A `SpdlAuth` shortcuts authentication when making multiple tasks with the API.
@@ -89,15 +91,28 @@ export class SpdlAuth {
         }
     }
 
-    async getPlayPlayKey(fileId: string) {
-        const licensePayload = {
-            "version": 2,
-            "token": this.accessToken,
-            "interactivity": 1,
-            "content_type": 1
+    getProtoHeaders(): Record<string, string> {
+        return {
+            "Authorization": `Bearer ${this.accessToken}`,
+            "Content-Type": "application/x-protobuf",
+            "Accept": "application/json",
+            "app-platform": "WebPlayer"
         }
+    }
 
-        const content = await this.getPlayPlayLicense(licensePayload, fileId);
+    async getPlayPlayKey(fileId: string) {
+        const licensePayload = PlayPlayLicenseRequest.encode({
+            version: 2,
+            token: Buffer.from(unplayplay.token),
+            interactivity: 1,
+            contentType: 1
+        }).finish();
+
+        const request = await this.getPlayPlayLicense(
+            licensePayload,
+            fileId
+        );
+        const content: any = PlayPlayLicenseResponse.decode(request);
 
         if (!content["obfuscated_key"]) {
             throw new SpotifyAuthError("No PlayPlay license was provided by the response.");
@@ -108,23 +123,23 @@ export class SpdlAuth {
     }
 
     private async getPlayPlayLicense(
-        challenge: any,
+        challenge: Uint8Array,
         fileId: string
-    ): Promise<any> {
+    ): Promise<Buffer> {
         const request = await undici.request(
             `https://gue1-spclient.spotify.com/playplay/v1/key/${fileId}`,
             {
                 method: "POST",
                 body: challenge,
-                headers: this.getHeaders()
+                headers: this.getProtoHeaders()
             }
         )
 
         if (request.statusCode != 200) {
-            throw new SpotifyAuthError("Could not get AES decryption key.");
+            throw new SpotifyApiError(request.statusCode, await request.body.text());
         }
 
-        const content = await request.body.json();
-        return content;
+        const content = await request.body.arrayBuffer();
+        return Buffer.from(content);
     }
 }

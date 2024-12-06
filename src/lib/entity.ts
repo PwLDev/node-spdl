@@ -17,13 +17,24 @@ export abstract class SpotifyEntity {
 
     static parseUrl(url: string): { id: string, type: string } | null
     {
-        const regex = new RegExp("(?:spotify:(?<type>[a-z]+):(?<id>[a-zA-Z0-9]+)|open\.spotify\.com\/(?<type>[a-z]+)\/(?<id>[a-zA-Z0-9]+))");
-        const match = url.match(regex);
+        const regex = /(?:spotify:(?<type1>[a-z]+):(?<id1>[a-zA-Z0-9]+)|open.spotify.com\/(?<type2>[a-z]+)\/(?<id2>[a-zA-Z0-9]+))/;
 
-        if (match?.groups?.id && match?.groups?.type) {
-            return { id: match.groups.id, type: match.groups.type };
+        const match1 = url.match(regex);
+        const match2 = url.match(regex);
+        
+        if (match1) {
+            const type = match1?.groups?.type1 || match1?.groups?.type2;
+            const id = match1?.groups?.id1 || match1?.groups?.id2;
+            return { id: id!, type: type! };
         }
-        return null;
+        
+        if (match2) {
+            const type = match2?.groups?.type1 || match2?.groups?.type2;
+            const id = match2?.groups?.id1 || match2?.groups?.id2;
+            return { id: id!, type: type! };
+        }
+
+        return null
     }
 
     abstract isPlayable(): boolean;
