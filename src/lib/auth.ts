@@ -1,11 +1,13 @@
-import { Message } from "protobufjs";
+// @ts-ignore
+import { decryptKey, bindKey, decryptAndBindKey, getToken } from "re-unplayplay";
 import undici from "undici";
-import unplayplay from "unplayplay";
 
 import { Endpoints } from "./const.js";
 import { SpotifyApiError, SpotifyAuthError } from "./errors.js";
-import { SpdlAuthLike, SpdlAuthOptions } from "./types.js";
-import { ContentType, PlayPlayLicenseRequest, PlayPlayLicenseResponse } from "./proto.js";
+import { SpdlAuthOptions } from "./types.js";
+import { PlayPlayLicenseRequest, PlayPlayLicenseResponse } from "./proto.js";
+import { SpotifyUser } from "./metadata.js";
+import { call } from "./request.js";
 
 /**
  * A `SpdlAuth` shortcuts authentication when making multiple tasks with the API.
@@ -89,10 +91,31 @@ export class SpdlAuth {
         }
     }
 
+    /**
+     * Gets info about yourself in Spotify.
+     * @returns Your user
+     */
+    async me(): Promise<SpotifyUser> {
+        const response = await call(Endpoints.ME, this);
+        return response;
+    }
+
+    /**
+     * Is the Spotify account premium?
+     */
+    async isPremium(): Promise<boolean> {
+        const me = await this.me();
+        return me.product == "premium";
+    }
+
+    // Thanks to:
+    // https://github.com/DaXcess/node-spotify-ap/blob/81e66fd5122936f299118fd75fd47420076f12e8/lib/audio/AudioKeyManager.ts#L84
+    private readonly playplayToken = "01a7cbe0d515351f69c2abf73b337a6b";
+
     async getPlayPlayKey(fileId: string) {
         const licensePayload = PlayPlayLicenseRequest.encode({
             version: 2,
-            token: Buffer.from(unplayplay.token),
+            token: Buffer.from(this.playplayToken, "hex"),
             interactivity: 1,
             contentType: 1
         }).finish();
@@ -101,13 +124,14 @@ export class SpdlAuth {
             licensePayload,
             fileId
         );
-        const content: any = PlayPlayLicenseResponse.decode(request);
 
+        const content: any = PlayPlayLicenseResponse.decode(request);
         if (!content["obfuscatedKey"]) {
             throw new SpotifyAuthError("No PlayPlay license was provided by the response.");
         }
 
-        const key = unplayplay.deobfuscateKey(Buffer.from(fileId, "hex"), content["obfuscatedKey"]);
+        const obfuscatedKey = (content["obfuscatedKey"] as Buffer);
+        const key: Buffer = decryptAndBindKey(obfuscatedKey, fileId);
         return key;
     }
 
@@ -119,7 +143,7 @@ export class SpdlAuth {
             `${Endpoints.PLAYPLAY}${fileId}`,
             {
                 method: "POST",
-                body: Buffer.from("CAMSEAGny+DVFTUfacKr9zszemsgASgBMOfG9I8G", "base64"),
+                body: challenge,
                 headers: this.getProtoHeaders()
             }
         )

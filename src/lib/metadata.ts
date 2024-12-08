@@ -12,11 +12,38 @@ declare interface Lyrics {
     language?: string;
 }
 
+declare interface SpotifyUser {
+    country: string;
+    display_name: string;
+    email: string;
+    explicit_content: {
+        filter_enabled: boolean,
+        filter_locked: boolean
+    },
+    external_urls: Record<string, string>,
+    followers: {
+        href: any,
+        total: number
+    },
+    href: string,
+    id: string,
+    images: {
+        height: number,
+        url: string,
+        width: number
+    }[],
+    policies: Record<string, any>,
+    product: string,
+    type: string,
+    uri: string
+}
+
 declare interface StorageResolveResponse {
     cdnurl: string[];
     result: "CDN" | "STORAGE" | "RESTRICTED" | "UNRECOGNIZED";
     fileid: string;
 }
+
 
 declare interface Track {
     artists: string[];
@@ -51,6 +78,7 @@ declare interface TrackMetadata {
 export {
     LyricsLine,
     Lyrics,
+    SpotifyUser,
     StorageResolveResponse,
     Track,
     TrackFile,

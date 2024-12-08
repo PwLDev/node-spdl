@@ -48,9 +48,8 @@
   "homepage": "https://github.com/PwLDev/node-spdl#readme",
   "dependencies": {
     "base-x": "^5.0.0",
-    "node-widevine": "^0.1.3",
-    "undici": "^6.20.1",
-    "unplayplay": "^1.0.5"
+    "re-unplayplay": "^1.2.8",
+    "undici": "^6.20.1"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",

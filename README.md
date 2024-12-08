@@ -7,8 +7,6 @@ A module to download content directly from Spotify's servers, written in Typescr
 
 In contrast to other similar packages which download the song from YouTube, this package directly downloads from Spotify's servers, delivering a high-quality, uncompressed Readable stream.
 
-> This package was originally made for **CountryBot** Discord Bot. Feel free to [join our Discord server](https://discord.com/invite/C78VU7Fmeh).
-
 ## Features
 - Downloads music tracks in different formats.
 - Downloads playlists.
@@ -92,14 +90,20 @@ TODO: documentation
 
 ## Disclaimer
 
-This package shouldn't take down your account at first use, however if you would like to feel safer, you can use the `discrete` property inside the default `spdl()` method to limit the download speed to a slower, less-suspicious speed that matches the natural playback of the Web Player.
-
 This package does not save any username or password provided and neither sends them to third party services.
 The credentials provided will only interact with the Spotify API.
 
-This package does not use Widevine for extracting the content.
-
 We are not related in any way with Spotify AB.
+
+## Legal Disclaimer
+
+**We do not encourage, promote or perform piracy.**
+
+With **node-spdl** you are authenticating with your own account, which essentially means you are accesing your own content.
+
+The user is responsible for further actions performed with it's decrypted content.
+
+If you'd like to support your favorite artists, you can always play their tracks on the [Spotify App](https://open.spotify.com).
 
 ## Credits
 - Package written by Sir [PwL](https://github.com/PwLDev).

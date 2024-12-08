@@ -1,10 +1,10 @@
 
-import { PassThrough, pipeline } from "node:stream";
+import { PassThrough, pipeline, Readable } from "node:stream";
 import undici from "undici";
 
 import { SpdlAuth } from "./auth.js";
 import { Endpoints } from "./const.js";
-import { createStreamDecryptor } from "./crypto.js";
+import { createPPStreamDecryptor } from "./decrypt.js";
 import { getTrackMetadata } from "./download.js";
 import { PlayableEntity, TrackEntity } from "./entity.js";
 import { SpotifyResolveError, SpotifyStreamError } from "./errors.js";
@@ -32,26 +32,36 @@ export class CDNFeeder {
     ) {
         let url: string;
         if (typeof response !== "string") {
-            url = response.cdnurl[0];
+            let filteredUrls = response.cdnurl.filter((url) => {
+                const urlObj = new URL(url)
+                return (
+                    !urlObj.hostname.includes("audio4-gm-fb") &&
+                    !urlObj.hostname.includes("audio-gm-fb")
+                )
+            });
+            url = filteredUrls[Math.floor(Math.random() * (filteredUrls.length - 1))];
         } else {
             url = response;
         }
 
         if (file.format.startsWith("vorbis")) {
-            const aesKey: Buffer = await this.auth.getPlayPlayKey(file.id);
+            const aesKey = await this.auth.getPlayPlayKey(file.id);
 
             try {
-                const { body } = await undici.request(url, { method: "GET" });
+                const { body } = await undici.fetch(url, { method: "GET" });
 
-                const decryptStream = createStreamDecryptor(aesKey, file.format);
+                if (!body) {
+                    throw new SpotifyStreamError("Could not get stream from CDN.");
+                }
 
+                const decryptStream = createPPStreamDecryptor(aesKey);
                 return pipeline(
                     body,
                     decryptStream,
                     this.stream,
                     (error) => {
                         if (error) {
-                            throw new SpotifyStreamError("Failed to decrypt raw file");
+                            throw new SpotifyStreamError(error.message);
                         }
                     }
                 );
