@@ -1,5 +1,5 @@
 // @ts-ignore
-import { decryptKey, bindKey, decryptAndBindKey, getToken } from "re-unplayplay";
+import unplayplay from "re-unplayplay";
 import undici from "undici";
 
 import { Endpoints } from "./const.js";
@@ -8,6 +8,10 @@ import { SpdlAuthOptions } from "./types.js";
 import { PlayPlayLicenseRequest, PlayPlayLicenseResponse } from "./proto.js";
 import { SpotifyUser } from "./metadata.js";
 import { call } from "./request.js";
+
+unplayplay.getToken = () => {
+    return Buffer.from("01a7cbe0d515351f69c2abf73b337a6b", "hex");
+}
 
 /**
  * A `SpdlAuth` shortcuts authentication when making multiple tasks with the API.
@@ -115,7 +119,7 @@ export class SpdlAuth {
     async getPlayPlayKey(fileId: string) {
         const licensePayload = PlayPlayLicenseRequest.encode({
             version: 2,
-            token: Buffer.from(this.playplayToken, "hex"),
+            token: unplayplay.getToken(),
             interactivity: 1,
             contentType: 1
         }).finish();
@@ -131,7 +135,7 @@ export class SpdlAuth {
         }
 
         const obfuscatedKey = (content["obfuscatedKey"] as Buffer);
-        const key: Buffer = decryptAndBindKey(obfuscatedKey, fileId);
+        const key: Buffer = unplayplay.decryptAndBindKey(obfuscatedKey, fileId);
         return key;
     }
 
