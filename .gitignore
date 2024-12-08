@@ -3,6 +3,7 @@ dist
 test
 tests
 .env
-*.DS_Store
-*.ogg
+.DS_Store
+**/.DS_Store
+.ogg
 package-lock.json
