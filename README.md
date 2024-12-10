@@ -2,6 +2,7 @@
 A module to download content directly from Spotify's servers, written in Typescript, for Node.js, with native Node components.
 
 ## In progress, not functional yet...
+This will be published to npm registry once it's fully working.
 
 ![Counter](https://count.getloli.com/@:node-spdl?name=%3Anode-spdl&theme=moebooru&padding=7&offset=0&align=center&scale=1&pixelated=1&darkmode=auto)
 
