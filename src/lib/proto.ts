@@ -1,4 +1,6 @@
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import proto from "protobufjs";
 
 export const resolveProto = async (
@@ -20,7 +22,21 @@ export const resolveProto = async (
     });
 }
 
-const playplay = proto.loadSync(path.resolve(`./src/proto/playplay.proto`));
+const resolveProtoPath = (filename: string): string => {
+	if (typeof __dirname !== "undefined") {
+		return path.join(__dirname, "..", "/proto", filename);
+	// @ts-ignore
+	} else if (typeof import.meta !== "undefined" && import.meta.url) {
+		// @ts-ignore
+		const __filename = fileURLToPath(import.meta.url);
+		const __dirname = path.dirname(__filename);
+		return path.join(__dirname, "..", "/proto", filename);
+	} else {
+		throw new Error("Unable to resolve proto path. Unsupported module environment.");
+	}
+}
+
+const playplay = proto.loadSync(resolveProtoPath("playplay.proto"));
 
 export const PlayPlayLicenseRequest = playplay.lookupType("PlayPlayLicenseRequest");
 export const Interactivity = playplay.lookupEnum("Interactivity");

@@ -1,17 +1,12 @@
-// @ts-ignore
-import unplayplay from "re-unplayplay";
 import undici from "undici";
+import unplayplay from "unplayplay";
 
 import { Endpoints } from "./const.js";
 import { SpotifyApiError, SpotifyAuthError } from "./errors.js";
-import { SpdlAuthOptions } from "./types.js";
-import { PlayPlayLicenseRequest, PlayPlayLicenseResponse } from "./proto.js";
 import { SpotifyUser } from "./metadata.js";
+import { PlayPlayLicenseRequest, PlayPlayLicenseResponse } from "./proto.js";
 import { call } from "./request.js";
-
-unplayplay.getToken = () => {
-    return Buffer.from("01a7cbe0d515351f69c2abf73b337a6b", "hex");
-}
+import { SpdlAuthOptions } from "./types.js";
 
 /**
  * A `SpdlAuth` shortcuts authentication when making multiple tasks with the API.
@@ -107,21 +102,18 @@ export class SpdlAuth {
     /**
      * Is the Spotify account premium?
      */
-    async isPremium(): Promise<boolean> {
-        const me = await this.me();
-        return me.product == "premium";
+    async isPremium(user?: SpotifyUser): Promise<boolean> {
+        if (!user) user = await this.me();
+        return user.product == "premium";
     }
-
-    // Thanks to:
-    // https://github.com/DaXcess/node-spotify-ap/blob/81e66fd5122936f299118fd75fd47420076f12e8/lib/audio/AudioKeyManager.ts#L84
-    private readonly playplayToken = "01a7cbe0d515351f69c2abf73b337a6b";
 
     async getPlayPlayKey(fileId: string) {
         const licensePayload = PlayPlayLicenseRequest.encode({
             version: 2,
-            token: unplayplay.getToken(),
+            token: unplayplay.token,
             interactivity: 1,
-            contentType: 1
+            contentType: 1,
+            timestamp: Math.floor(Date.now() / 1000)
         }).finish();
 
         const request = await this.getPlayPlayLicense(
@@ -134,8 +126,12 @@ export class SpdlAuth {
             throw new SpotifyAuthError("No PlayPlay license was provided by the response.");
         }
 
-        const obfuscatedKey = (content["obfuscatedKey"] as Buffer);
-        const key: Buffer = unplayplay.decryptAndBindKey(obfuscatedKey, fileId);
+        const obfuscatedKey: Buffer = content["obfuscatedKey"];
+        const key = unplayplay.deobfuscateKey(
+            Buffer.from(fileId, "hex"),
+            obfuscatedKey
+        );
+
         return key;
     }
 

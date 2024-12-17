@@ -1,6 +1,9 @@
 # node-spdl
 A module to download content directly from Spotify's servers, written in Typescript, for Node.js, with native Node components.
 
+## WIP, not functional yet...
+Once it's functional, it'll be published to the npm registry.
+
 ![Counter](https://count.getloli.com/@:node-spdl?name=%3Anode-spdl&theme=moebooru&padding=7&offset=0&align=center&scale=1&pixelated=1&darkmode=auto)
 
 ## About
@@ -11,7 +14,7 @@ In contrast to other similar packages which download the song from YouTube, this
 - Downloads playlists.
 - Downloads podcast episodes.
 - Easy to use Node based streaming.
-- Metadata tagging for MP3 files.
+- Metadata tagging.
 - Exports synced lyrics.
 
 ## Requirements
@@ -102,6 +105,10 @@ With **node-spdl** you are authenticating with your own account, which essential
 
 The user is responsible for further actions performed with it's decrypted content.
 If you'd like to support your favorite artists, you can always play their tracks on the [Spotify App](https://open.spotify.com).
+
+We don't guarantee that your account won't be taken down, use this tool at your own risk!
+
+**Important note:** My account got suspended while testing this package, most likely due to the high amount of invalid requests I made. I highly encourage you to add `delay` when running `spdl.playlist()` and avoid making high quantity bulk requests.
 
 ## Credits
 - Package written by Sir [PwL](https://github.com/PwLDev).

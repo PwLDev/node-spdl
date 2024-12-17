@@ -11,7 +11,7 @@ import { Track, TrackFile, TrackMetadata } from "./metadata.js";
 import { call } from "./request.js";
 import { SpdlAuthLike, SpdlOptions } from "./types.js";
 import { getIdFromURL, validateURL } from "./url.js";
-import { PlayableContentFeeder } from "./content.js";
+import { PlayableContentStreamer } from "./content.js";
 
 export const getTrackInfo = async (
     trackId: string,
@@ -143,6 +143,6 @@ export const downloadContentFromInfo = async (
         throw new SpotifyStreamError("Format provided is not supported by this content.");
     }
 
-    const feeder = new PlayableContentFeeder(auth, stream, options.preload);
+    const feeder = new PlayableContentStreamer(auth, stream, options.preload);
     await feeder.load(content, options.format);
 }

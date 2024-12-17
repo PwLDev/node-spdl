@@ -13,7 +13,7 @@ import { call } from "./request.js";
 import { SpdlAudioQuality } from "./types.js";
 import { base62 } from "./util.js";
 
-export class CDNFeeder {
+export class CDNStreamer {
     auth: SpdlAuth;
     stream: PassThrough;
 
@@ -72,9 +72,9 @@ export class CDNFeeder {
     }
 }
 
-export class PlayableContentFeeder {
+export class PlayableContentStreamer {
     auth: SpdlAuth;
-    cdn: CDNFeeder;
+    cdn: CDNStreamer;
     preload: boolean;
     stream: PassThrough;
 
@@ -84,7 +84,7 @@ export class PlayableContentFeeder {
         preload: boolean = false
     ) {
         this.auth = auth;
-        this.cdn = new CDNFeeder(auth, stream);
+        this.cdn = new CDNStreamer(auth, stream);
         this.preload = preload;
         this.stream = stream;
     }
