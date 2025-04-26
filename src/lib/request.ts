@@ -1,11 +1,11 @@
 import undici from "undici";
 
-import { SpdlAuth } from "./auth.js";
+import { Spotify } from "./client.js";
 import { SpotifyApiError } from "./errors.js";
 
 export const call = async (
     url: string,
-    auth: SpdlAuth,
+    auth: Spotify,
     refresh: boolean = true
 ) => {
     if (refresh) auth.refresh();
@@ -25,7 +25,7 @@ export const call = async (
 
 export const callRaw = async (
     url: string,
-    auth: SpdlAuth,
+    auth: Spotify,
     refresh: boolean = true
 ) => {
     if (refresh) auth.refresh();

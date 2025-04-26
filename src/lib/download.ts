@@ -3,19 +3,21 @@ import {
     Readable
 } from "node:stream";
 
-import { SpdlAuth } from "./auth.js";
+import { Spotify } from "./client.js";
 import { Endpoints, Formats } from "./const.js";
-import { createSpotifyEntity, PlayableEntity, PlaylistEntity, TrackEntity } from "./entity.js";
-import { SpotifyAuthError, SpotifyError, SpotifyResolveError, SpotifyStreamError } from "./errors.js";
+import { createSpotifyEntity, PlayableEntity, TrackEntity } from "./entity.js";
+import { SpotifyAuthError, SpotifyError, SpotifyStreamError } from "./errors.js";
 import { Track, TrackFile, TrackMetadata } from "./metadata.js";
 import { call } from "./request.js";
-import { SpdlAuthLike, SpdlOptions } from "./types.js";
-import { getIdFromURL, validateURL } from "./url.js";
+import { SpdlOptions } from "./types.js";
+import { validateURL } from "./url.js";
 import { PlayableContentStreamer } from "./content.js";
+
+const premiumFormats = [Formats.OGG_VORBIS_320, Formats.MP4_256, Formats.MP4_256_DUAL];
 
 export const getTrackInfo = async (
     trackId: string,
-    auth: SpdlAuth
+    auth: Spotify
 ): Promise<Track> => {
     const track = await call(`${Endpoints.TRACKS_URL}${trackId}`, auth);
 
@@ -60,7 +62,7 @@ export const getTrackInfo = async (
 
 export const getTrackMetadata = async (
     contentId: string,
-    auth: SpdlAuth
+    auth: Spotify
 ): Promise<TrackMetadata> => {
     const meta = await call(`${Endpoints.TRACK_METADATA_URL}${contentId}`, auth);
 
@@ -70,9 +72,11 @@ export const getTrackMetadata = async (
     for (let file of meta["file"]) {
         files.push({
             id: file["file_id"],
-            format: Formats[file["format"]]
+            format: (Formats as Record<string, string>)[file["format"]]
         });
-        rawFormats.push(Formats[file["format"]]);
+        rawFormats.push(
+            (Formats as Record<string, string>)[file["format"]]
+        );
     }
 
     return {
@@ -122,7 +126,7 @@ export const spdl = (
 export const downloadContentFromInfo = async (
     stream: PassThrough,
     content: PlayableEntity,
-    auth: SpdlAuth,
+    auth: Spotify,
     options: SpdlOptions
 ) => {
     if (!options.format) {
@@ -141,6 +145,13 @@ export const downloadContentFromInfo = async (
 
     if (!metadata.formats.includes(options.format)) {
         throw new SpotifyStreamError("Format provided is not supported by this content.");
+    }
+
+    if (
+        premiumFormats.includes(options.format) 
+        && !auth.isPremium()
+    ) {
+        throw new SpotifyAuthError("Selected format is only available for Spotify premium accounts.");
     }
 
     const feeder = new PlayableContentStreamer(auth, stream, options.preload);

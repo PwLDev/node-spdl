@@ -3,6 +3,9 @@ A lightweight package to download directly from Spotify's servers. Written in Ty
 
 ![Counter](https://count.getloli.com/@:node-spdl?name=%3Anode-spdl&padding=7&offset=0&align=center&scale=1&pixelated=1&darkmode=auto)
 
+> Note: For now, only Ogg Vorbis is supported.
+> AAC (mp4) support will be added soon.
+
 ## Table of Contents
 
 - [About](#about)
@@ -102,13 +105,13 @@ const stream = spdl(url, {
 
 ## Disclaimer
 
-This package does not save any username or password provided and neither sends them to 3rd party services.
+This package does not save any username or password provided and neither sends them to third party services.
 The credentials provided will only interact with the Spotify API.
 
 With **node-spdl** you are authenticating with your own account, which essentially means you are accesing your own authorized content.
 
 The user is responsible for further actions performed with it's decrypted content.
-If you'd like to support your favorite artists, you can always play their tracks on the [Spotify App](https://open.spotify.com).
+If you'd like to support your favorite artists, you can always play their tracks via the [Spotify App](https://open.spotify.com).
 
 Anyways, I made this package just for fun and experimentation, please use this tool with caution.
 

@@ -1,4 +1,4 @@
-import { SpdlAuth } from "./auth.js";
+import { Spotify } from "./client.js";
 import { Endpoints } from "./const.js";
 import { SpotifyError, SpotifyAuthError } from "./errors.js";
 import { Lyrics, LyricsLine } from "./metadata.js";
@@ -15,7 +15,7 @@ import { validateURL, getIdFromURL } from "./url.js";
  */
 export const lyrics = async (
     url: string,
-    auth: SpdlAuth
+    auth: Spotify
 ): Promise<Lyrics | null> => {
     if (validateURL(url)) {
         const trackId = getIdFromURL(url);

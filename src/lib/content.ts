@@ -1,8 +1,7 @@
-
 import { PassThrough, pipeline, Readable } from "node:stream";
 import undici from "undici";
 
-import { SpdlAuth } from "./auth.js";
+import { Spotify } from "./client.js";
 import { Endpoints } from "./const.js";
 import { createPPStreamDecryptor } from "./decrypt.js";
 import { getTrackMetadata } from "./download.js";
@@ -11,14 +10,13 @@ import { SpotifyResolveError, SpotifyStreamError } from "./errors.js";
 import { StorageResolveResponse, TrackFile, TrackMetadata } from "./metadata.js";
 import { call } from "./request.js";
 import { SpdlAudioQuality } from "./types.js";
-import { base62 } from "./util.js";
 
 export class CDNStreamer {
-    auth: SpdlAuth;
+    auth: Spotify;
     stream: PassThrough;
 
     constructor(
-        auth: SpdlAuth,
+        auth: Spotify,
         stream: PassThrough
     ) {
         this.auth = auth;
@@ -73,13 +71,13 @@ export class CDNStreamer {
 }
 
 export class PlayableContentStreamer {
-    auth: SpdlAuth;
+    auth: Spotify;
     cdn: CDNStreamer;
     preload: boolean;
     stream: PassThrough;
 
     constructor(
-        auth: SpdlAuth, 
+        auth: Spotify, 
         stream: PassThrough,
         preload: boolean = false
     ) {
