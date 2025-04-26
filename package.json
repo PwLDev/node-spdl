@@ -19,9 +19,7 @@
     "build:esm": "tsc --module ESNext --outDir dist/esm",
     "build:cjs": "tsc --module CommonJS --outDir dist/cjs",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist",
-    "copy:esm": "copyfiles -u 1 src/proto/**/*.proto dist/esm",
-    "copy:cjs": "copyfiles -u 1 src/proto/**/*.proto dist/cjs",
-    "build": "npm run build:esm && npm run build:cjs && npm run build:types && npm run copy:esm && npm run copy:cjs"
+    "build": "npm run build:esm && npm run build:cjs && npm run build:types"
   },
   "repository": {
     "type": "git",
