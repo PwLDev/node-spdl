@@ -14,6 +14,7 @@ const INITIAL_VALUE = Buffer.concat([NONCE, COUNTER]);
  */
 export const createPPStreamDecryptor = (key: Buffer) => {
     let toSkip = 0xa7;
+    let headerFound = false;
     const decipher = createDecipheriv(
         "aes-128-ctr", key, INITIAL_VALUE
     );
@@ -21,7 +22,7 @@ export const createPPStreamDecryptor = (key: Buffer) => {
     return new Transform({
         transform(
             chunk: Buffer, 
-            encoding: BufferEncoding, 
+            encoding: BufferEncoding,
             callback: TransformCallback
         ) {
             try {
@@ -30,19 +31,31 @@ export const createPPStreamDecryptor = (key: Buffer) => {
                 if (toSkip > decrypted.length) {
                     toSkip -= decrypted.length;
                 } else {
-                    if (toSkip != chunk.length) this.push(decrypted.subarray(toSkip));
+                    if (toSkip != decrypted.length) this.push(decrypted.subarray(toSkip));
                     toSkip = 0;
                 }
 
-                callback()
+                if (decrypted.indexOf("OggS") >= 0) {
+                    headerFound = true;
+                }
+
+                callback();
             } catch (error: any) {
                 callback(error);
             }
         },
-        flush(callback: TransformCallback) {
+        flush(callback) {
             try {
                 let final = decipher.final();
                 this.push(final);
+
+                if (final.indexOf("OggS") >= 0) {
+                    headerFound = true;
+                }
+
+                if (!headerFound) {
+                    throw new SpotifyStreamError("Failed to decrypt a valid OGG file!");
+                }
 
                 callback(null);
             } catch (error: any) {

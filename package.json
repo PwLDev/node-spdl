@@ -47,7 +47,6 @@
   },
   "homepage": "https://github.com/PwLDev/node-spdl#readme",
   "dependencies": {
-    "@spdl/unplayplay": "^1.0.6",
     "base-x": "^5.0.0",
     "hi-base32": "^0.5.1",
     "protobufjs": "^7.4.0",

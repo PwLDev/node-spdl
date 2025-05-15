@@ -18,7 +18,7 @@ A lightweight package to download directly from Spotify's servers. Written in Ty
 
 ## About
 
-Unlike other similar package which rely on YouTube to extract tracks, `node-spdl` fetches content directly from Spotify’s servers, ensuring high-quality, uncompressed streams.
+Unlike other similar package which rely on YouTube to extract tracks, `node-spdl` fetches content directly from Spotify’s servers, ensuring high-quality and non modified streams.
 
 ### Key Features
 - Download music tracks in multiple formats and bitrates.

@@ -1,7 +1,7 @@
 import base32 from "hi-base32";
 import { TOTP } from "totp-generator";
 import undici from "undici";
-import unplayplay from "unplayplay";
+import unplayplay from "@spdl/unplayplay";
 
 import { Endpoints } from "./const.js";
 import { SpotifyApiError, SpotifyAuthError } from "./errors.js";
@@ -135,8 +135,6 @@ export class Spotify {
             timestamp: Math.floor(Date.now() / 1000)
         }).finish();
 
-        console.log("Payload: ",PlayPlayLicenseRequest.decode(licensePayload).toJSON())
-
         const request = await this.getPlayPlayLicense(
             licensePayload,
             fileId
@@ -173,8 +171,6 @@ export class Spotify {
         if (request.statusCode != 200) {
             throw new SpotifyApiError(request.statusCode, await request.body.text());
         }
-
-        console.log("Status: ", request.statusCode)
 
         const content = await request.body.arrayBuffer();
         return Buffer.from(content);
