@@ -1,8 +1,6 @@
 import { createDecipheriv } from "node:crypto";
 import { Transform, TransformCallback } from "node:stream";
 
-import { SpotifyStreamError } from "./errors.js";
-
 const NONCE = Buffer.from("72e067fbddcbcf77", "hex");
 const COUNTER = Buffer.from("ebe8bc643f630d93", "hex");
 const INITIAL_VALUE = Buffer.concat([NONCE, COUNTER]);
@@ -30,7 +28,7 @@ export const createPPStreamDecryptor = (key: Buffer) => {
                 if (toSkip > decrypted.length) {
                     toSkip -= decrypted.length;
                 } else {
-                    if (toSkip != chunk.length) this.push(decrypted.subarray(toSkip));
+                    if (toSkip != decrypted.length) this.push(decrypted.subarray(toSkip));
                     toSkip = 0;
                 }
 

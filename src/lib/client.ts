@@ -1,89 +1,76 @@
-import base32 from "hi-base32";
-import { TOTP } from "totp-generator";
+import { PassThrough, Readable } from "node:stream";
 import undici from "undici";
-import unplayplay from "unplayplay";
 
-import { Endpoints } from "./const.js";
-import { SpotifyApiError, SpotifyAuthError } from "./errors.js";
-import { SpotifyUser } from "./metadata.js";
-import { PlayPlayLicenseRequest, PlayPlayLicenseResponse } from "./proto.js";
-import { call } from "./request.js";
-import { SpdlAuthOptions } from "./types.js";
+import { ArtistClient } from "./artist.js";
+import { Endpoints, AudioType, premiumFormats } from "./const.js";
+import { PlayableContentStreamer } from "./content.js";
+import { createSpotifyEntity, EpisodeEntity, PlayableEntity, TrackEntity } from "./entity.js";
+import { SpotifyAuthError, SpotifyError, SpotifyStreamError } from "./errors.js";
+import { PlaylistClient } from "./playlist.js";
+import { PlayPlayClient } from "./playplay.js";
+import { PodcastClient } from "./podcast.js";
+import { getSpotifyTotp } from "./totp.js";
+import { TrackClient } from "./track.js";
+import { SpdlClientOptions, SpdlOptions } from "./types.js";
+import { validateURL } from "./url.js";
+import { UserClient } from "./user.js";
 
 /**
- * The `Spotify` initializes a Spotify API client.
- * A valid sp_dc cookie or non-anonymous (logged in) access token must be provided.
+ * The `Spotify` class initializes a Spotify API client.
  * 
- * Refer to [here](https://github.com/PwLDev/node-spdl?tab=readme-ov-file#how-to-get-a-cookie-])
- * to see how to extract a sp_dc cookie.
- * 
- * @param {SpdlAuthOptions} options Authenticate with your Spotify account.
+ * @param {SpdlClientOptions} options Authenticate with your Spotify account.
+ * @see https://github.com/PwLDev/node-spdl?tab=readme-ov-file#how-to-get-a-cookie How to extract a sp_dc cookie.
  */
 export class Spotify {
     accessToken: string = "";
     expirationTime: string = "";
     cookie: string = "";
     expiration: number = 0;
+    readonly options: SpdlClientOptions;
 
-    constructor(options: SpdlAuthOptions) {
+    public playplay = new PlayPlayClient(this);
+    public tracks = new TrackClient(this);
+
+    public artists = new ArtistClient(this);
+    public playlists = new PlaylistClient(this);
+    public podcasts = new PodcastClient(this);
+    public user = new UserClient(this);
+
+    constructor(options: SpdlClientOptions) {
         if (options.accessToken) {
             this.accessToken = options.accessToken;
         } else {
             if (options.cookie) {
                 this.cookie = options.cookie;
-                this.refresh();
             } else {
                 throw new SpotifyAuthError(`A valid "sp_dc" cookie or access token must be provided.`);
             }
         }
+
+        if (!options.forcePremium) {
+            options.forcePremium = false;
+        }
+
+        this.options = options;
     }
 
     /**
-     * Refresh the token if expiration time expired.
+     * Initialize a `Spotify` instance with logged in credentials.
+     * A valid sp_dc cookie or non-anonymous (logged in) access token must be provided.
+     * 
+     * @param {SpdlClientOptions} options Authenticate with your Spotify account.
+     * @see https://github.com/PwLDev/node-spdl?tab=readme-ov-file#how-to-get-a-cookie How to extract a sp_dc cookie.
+     * @example
+     * ```js
+     * const client = await Spotify.create({
+     *   cookie: "sp_dc=some-cookie-here"
+     * });
+     * ```
      */
-    async refresh(): Promise<void> {
-        if (
-            !this.expiration ||
-            !this.cookie.length ||
-            this.expiration > Date.now()
-        ) return;
-
-        const [otpValue, serverTime] = await this.generateTotp();
-        const clientTime = Date.now();
-
-        const tokenRequest = await undici.request(
-            "https://open.spotify.com/get_access_token",
-            {
-                method: "GET",
-                headers: {
-                    "Cookie": `sp_dc=${this.cookie}`,
-                    ...this.getHeaders()
-                },
-                query: {
-                    reason: "transport",
-                    productType: "web-player",
-                    totp: otpValue.toString(),
-                    totpServer: otpValue.toString(),
-                    totpVer: "5",
-                    sTime: serverTime.toString(),
-                    cTime: clientTime.toString()
-                }
-            }
-        );
-
-        const response: any = await tokenRequest.body.json();
-        const isAnonymous = response["isAnonymous"];
-
-        if (isAnonymous) {
-            throw new SpotifyAuthError("You must provide a valid sp_dc cookie from a Spotify logged in browser.\nRefer to https://github.com/PwLDev/node-spdl#readme to see how to extract a cookie.");
-        }
-
-        this.accessToken = response["accessToken"];
-
-        const expirationTime = response["accessTokenExpirationTimestampMs"];
-        if (expirationTime) {
-            this.expiration = expirationTime;
-        }
+    static async create(options: SpdlClientOptions) {
+        const instance = new this(options);
+        await instance.refresh();
+        return instance;
     }
 
     getHeaders(): Record<string, string> {
@@ -110,116 +97,146 @@ export class Spotify {
     }
 
     /**
-     * Gets info about yourself in Spotify.
-     * @returns Your user
+     * Refresh the token if expiration time expired.
      */
-    async me(): Promise<SpotifyUser> {
-        const response = await call(Endpoints.ME, this);
-        return response;
-    }
+    public async refresh(): Promise<void> {
+        if (this.expiration > Date.now()) return;
 
-    /**
-     * Is the Spotify account premium?
-     */
-    async isPremium(user?: SpotifyUser): Promise<boolean> {
-        if (!user) user = await this.me();
-        return user.product == "premium";
-    }
+        const [otp, timestamp] = await getSpotifyTotp();
+        const clientTime = Date.now();
 
-    async getPlayPlayKey(fileId: string) {
-        const licensePayload = PlayPlayLicenseRequest.encode({
-            version: 2,
-            token: unplayplay.token,
-            interactivity: 1,
-            contentType: 1,
-            timestamp: Math.floor(Date.now() / 1000)
-        }).finish();
-
-        console.log("Payload: ",PlayPlayLicenseRequest.decode(licensePayload).toJSON())
-
-        const request = await this.getPlayPlayLicense(
-            licensePayload,
-            fileId
-        );
-
-        const content: any = PlayPlayLicenseResponse.decode(request);
-        console.log("Response: ", content)
-        if (!content["obfuscatedKey"]) {
-            throw new SpotifyAuthError("No PlayPlay license was provided by the response.");
+        const headers = {};
+        if (this.cookie.length) {
+            Object.assign(headers, { "Cookie": this.cookie });
         }
 
-        const obfuscatedKey: Buffer = content["obfuscatedKey"];
-        const key = unplayplay.deobfuscateKey(
-            Buffer.from(fileId, "hex"),
-            obfuscatedKey
-        );
-
-        return key;
-    }
-
-    private async getPlayPlayLicense(
-        challenge: Uint8Array,
-        fileId: string
-    ): Promise<Buffer> {
-        const request = await undici.request(
-            `${Endpoints.PLAYPLAY}${fileId}`,
+        const tokenRequest = await undici.request(
+            Endpoints.TOKEN,
             {
-                method: "POST",
-                body: challenge,
-                headers: this.getProtoHeaders()
-            }
-        )
-
-        if (request.statusCode != 200) {
-            throw new SpotifyApiError(request.statusCode, await request.body.text());
-        }
-
-        console.log("Status: ", request.statusCode)
-
-        const content = await request.body.arrayBuffer();
-        return Buffer.from(content);
-    }
- 
-    private async generateTotp() {    
-        // Code translated from:
-        // https://github.com/misiektoja/spotify_monitor/blob/dev/spotify_monitor.py#L759
-        // https://github.com/KRTirtho/spotube/blob/ba27dc70e4fae63a1fd1089e50487ecee1c871ca/lib/provider/authentication/authentication.dart#L209
-        
-        // generate totp with bitwise operations
-        const transformed = [
-            12, 56, 76, 33, 88, 44, 88, 33,
-            78, 78, 11, 66, 22, 22, 55, 69, 54,
-        ].map((n, i) => n ^ ((i % 33) + 9));
-
-        const joined = transformed.map((n) => n.toString()).join("");
-        const utf8Bytes = Buffer.from(joined, "utf8");
-        const hexBytes: string[] = [];
-
-        for (let n of utf8Bytes) hexBytes.push(n.toString(16));
-
-        const secretKey = Buffer.from(hexBytes.join(""), "hex");
-        const secret = base32.encode(secretKey).replace(/=+$/, "");
-
-        const req = await undici.request(
-            "https://open.spotify.com/server-time",
-            {
-                headers: {
-                    "Host": "open.spotify.com",
-                    "Accept": "*/*",
+                headers,
+                method: "GET",
+                query: {
+                    reason: "transport",
+                    productType: "web-player",
+                    totp: otp.toString(),
+                    totpServer: otp.toString(),
+                    totpVer: "5",
+                    sTime: timestamp.toString(),
+                    cTime: clientTime.toString()
                 }
             }
         );
 
-        const json: any = await req.body.json()
-        const serverTime: number = json["serverTime"];
+        const response: any = await tokenRequest.body.json();
+        const isAnonymous = response["isAnonymous"];
 
-        const { otp } = TOTP.generate(secret, {
-            algorithm: "SHA-1",
-            digits: 6,
-            period: 30,
-            timestamp: serverTime * 1000
+        if (isAnonymous) {
+            throw new SpotifyAuthError("You must provide a valid sp_dc cookie from a Spotify logged in browser.\nRefer to https://github.com/PwLDev/node-spdl#readme to see how to extract a cookie.");
+        }
+
+        this.accessToken = response["accessToken"];
+
+        const expirationTime = response["accessTokenExpirationTimestampMs"];
+        if (expirationTime) {
+            this.expiration = expirationTime;
+        }
+    }
+
+    public async request(endpoint: string): Promise<any> {
+        if (!this.accessToken.length) {
+            throw new SpotifyAuthError("This client is not authenticated yet.");
+        }
+
+        const request = await undici.request(endpoint, {
+            headers: this.getHeaders(),
+            method: "GET"
         });
 
-        return [otp, serverTime];
+        return await request.body.json();
+    }
+
+    /**
+     * Downloads a track from Spotify by its URL.
+     * @param {String} url URL of the track
+     * @param {SpdlOptions} options Options for downloading the track.
+     */
+    public download(
+        url: string,
+        options: SpdlOptions
+    ): Readable {
+        const stream = new PassThrough({
+            highWaterMark: options.highWaterMark || 1024 * 512
+        });
+
+        if (validateURL(url)) {
+            const content = createSpotifyEntity(url);
+            if (!(content instanceof PlayableEntity)) {
+                throw new SpotifyError("An unplayable Spotify entity was provided.");
+            }
+
+            this.downloadFromEntity(stream, content, options);
+        } else {
+            stream.destroy();
+            throw new SpotifyAuthError("An invalid Spotify URL was provided.");
+        }
+
+        return stream;
+    }
+
+    protected async downloadFromEntity(
+        stream: PassThrough,
+        content: PlayableEntity,
+        options: SpdlOptions
+    ) {
+        if (!options.format) {
+            // Default to a reasonable quality
+            options.format = "OGG_VORBIS_160";
+        }
+
+        if (!options.encrypt) {
+            options.encrypt = false;
+        }
+
+        if (!options.preload) {
+            options.preload = false;
+        }
+
+        const feeder = new PlayableContentStreamer(this, stream, options.preload);
+        const isPremium = await this.user.isPremium();
+
+        if (content instanceof TrackEntity) {
+            const metadata = await this.tracks.getMetadata(content.toHex());
+            const formats = metadata.files.map((k) => k.format);
+
+            if (!formats.includes(options.format)) {
+                throw new SpotifyStreamError("Format provided is not supported by this content.");
+            }
+    
+            if (
+                premiumFormats.includes(options.format) 
+                && !isPremium
+            ) {
+                throw new SpotifyAuthError("Selected format is only available for Spotify premium accounts.");
+            }
+    
+            await feeder.loadContent(metadata, options, AudioType.AUDIO_TRACK);
+        } else if (content instanceof EpisodeEntity) {
+            const metadata = await this.podcasts.getMetadata(content.toHex());
+            const formats = metadata.files.map((k) => k.format);
+            console.log(metadata)
+
+            if (!formats.includes(options.format)) {
+                throw new SpotifyStreamError("Format provided is not supported by this content.");
+            }
+    
+            if (
+                premiumFormats.includes(options.format) 
+                && !isPremium
+            ) {
+                throw new SpotifyAuthError("Selected format is only available for Spotify premium accounts.");
+            }
+
+            await feeder.loadContent(metadata, options, AudioType.AUDIO_EPISODE);
+        }
     }
 }

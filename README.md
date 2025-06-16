@@ -1,29 +1,21 @@
 # node-spdl
-A lightweight package to download directly from Spotify's servers. Written in Typescript, designed for Node.js, with native Node components.
+A lightweight Spotify downloader package.
+Written in Typescript, designed for Node.js, with native Node components.
 
 ![Counter](https://count.getloli.com/@:node-spdl?name=%3Anode-spdl&padding=7&offset=0&align=center&scale=1&pixelated=1&darkmode=auto)
 
 > Note: For now, only Ogg Vorbis is supported.
 > AAC (mp4) support will be added soon.
 
-## Table of Contents
-
-- [About](#about)
-- [Requirements](#requirements)
-- [Quickstart](#quickstart)
-- [Formats](#formats)
-- [API](#api)
-- [Disclaimer](#disclaimer)
-- [Credits](#credits)
-
 ## About
 
-Unlike other similar package which rely on YouTube to extract tracks, `node-spdl` fetches content directly from Spotify’s servers, ensuring high-quality, uncompressed streams.
+Unlike other similar package which rely on YouTube to extract tracks, `spdl` fetches content directly from Spotify’s servers, ensuring high-quality and non modified streams.
+
+`spdl` also acts as a lightweight wrapper around some commonly used Spotify internal APIs.
 
 ### Key Features
 - Download music tracks in multiple formats and bitrates.
-- Supports downloading playlists and podcast episodes.
-- Metadata tagging and synced lyrics export.
+- Supports tracks and podcast episodes.
 - Node.js stream support for flexible usage.
 
 ## Requirements
@@ -32,7 +24,7 @@ Unlike other similar package which rely on YouTube to extract tracks, `node-spdl
 - Get a **Spotify cookie** from your browser. (or, you can use a non-anonymous Spotify access token and skip this requirement)
 
 **Non-anonymous** token refers to an access token which is got from a Spotify Account (logged in browser).
-A cookie is always a better option due to the fact that the access token can automatically refresh after expiry time.
+A cookie is always a better option due to the fact that the access token can automatically refresh after the token expiry time.
 
 ### How to get a cookie? 🍪
 This section assumes you use a Chromium-based browser but you can use any browser you like.
@@ -66,22 +58,34 @@ The base function of this package, which most likely you're here for: **download
 You can directly import the package, which **is hybrid**, you can use it either in CJS or ES modules, and use it as a function.
 Also note that this package is **properly typed**, so you shouldn't have any issue when using Typescript.
 
-Firstly, we must authenticate with the Spotify API, which can be made by providing a cookie, a non-anonymous token or creating a session with your username and password (coming soon). 
+First, we must authenticate with the Spotify API, which can be made by providing a cookie, a non-anonymous token or creating a session with your username and password (coming soon). 
+
+Here's a short ytdl-core-like example for downloading a song to a file:
 
 ```js
-import spdl from "spdl";
-// CJS import:
-// const spdl = require("spdl");
+import { createWriteStream } from "node:fs";
+import { Spotify } from "spdl";
 
-// A very basic example
-const url = "https://open.spotify.com/track/6c2OfsMKs7pv7qhD0sGGeM";
-const stream = spdl(url, {
-    cookie: "your-cookie-here"
-});
+// A very basic example:
+async function download() {
+    const client = await Spotify.create({
+        cookie: "sp_dc=your-cookie-here"
+    });
+
+    const url = "https://open.spotify.com/track/45AepEzwUs3GjhNxhh49ip";
+    const stream = client.download(url, {
+        quality: "OGG_VORBIS_160"
+    });
+
+    stream.pipe(createWriteStream("song.ogg"));
+}
+
+download();
 ```
 
-**As simple as that!** (of course if you don't need anything specific rather than getting a stream).
-
+> [!NOTE]  
+> The ytdl-core-like syntax only works for the `spdl` function and is limited to downloads.
+> To use other API features, you must initialize a `Spotify` class instance.
 
 ## Formats
 
@@ -92,16 +96,14 @@ const stream = spdl(url, {
 
 | Keyword       | Bitrate | Codec  | Premium |
 |:--------------|:-------:|:------:|:-------:|
-| vorbis-low    | 96kbps  | Vorbis |         |
-| vorbis-medium | 160kbps | Vorbis |         |
-| vorbis-high   | 320kbps | Vorbis | ✅      |
-| aac-low       | 128kbps | AAC    |         | 
-| acc-high      | 256kbps | AAC    | ✅      |
-
-
-## API (WIP)
-
-### `spdl(url: string, options: SpdlOptions | SpdlAuth)`
+| OGG_VORBIS_96 | 96kbps  | Vorbis |         |
+| OGG_VORBIS_160| 160kbps | Vorbis |         |
+| OGG_VORBIS_320| 320kbps | Vorbis | ✅      |
+| MP4_128       | 128kbps | AAC    |         | 
+| MP4_128_DUAL  | 128kbps | AAC    |         | 
+| MP4_256       | 256kbps | AAC    | ✅      |
+| MP4_256_DUAL  | 256kbps | AAC    | ✅      |
+| MP3_96        | 96kbps  | MP3    |         |
 
 ## Disclaimer
 

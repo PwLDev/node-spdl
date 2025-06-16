@@ -70,7 +70,7 @@ export class EpisodeEntity extends PlayableEntity {
         }
     }
 
-    toBase62(): string {
+    toHex(): string {
         const buffer = Buffer.from(base62.decode(this.id));
         return buffer.toString("hex");
     }
@@ -101,7 +101,7 @@ export class TrackEntity extends PlayableEntity {
         }
     }
 
-    toBase62(): string {
+    toHex(): string {
         const buffer = Buffer.from(base62.decode(this.id));
         return buffer.toString("hex");
     }

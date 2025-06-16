@@ -1,32 +1,30 @@
-import { PassThrough, pipeline, Readable } from "node:stream";
+import { PassThrough, pipeline } from "node:stream";
 import undici from "undici";
 
 import { Spotify } from "./client.js";
-import { Endpoints } from "./const.js";
+import { Endpoints, AudioType } from "./const.js";
 import { createPPStreamDecryptor } from "./decrypt.js";
-import { getTrackMetadata } from "./download.js";
-import { PlayableEntity, TrackEntity } from "./entity.js";
-import { SpotifyResolveError, SpotifyStreamError } from "./errors.js";
-import { StorageResolveResponse, TrackFile, TrackMetadata } from "./metadata.js";
-import { call } from "./request.js";
-import { SpdlAudioQuality } from "./types.js";
+import { SpotifyStreamError } from "./errors.js";
+import { EpisodeMetadata, SpdlOptions, StorageResolveResponse, TrackFile, TrackMetadata } from "./types.js";
+
+type PlayableMetadata = EpisodeMetadata | TrackMetadata;
 
 export class CDNStreamer {
-    auth: Spotify;
+    client: Spotify;
     stream: PassThrough;
 
     constructor(
-        auth: Spotify,
+        client: Spotify,
         stream: PassThrough
     ) {
-        this.auth = auth;
+        this.client = client;
         this.stream = stream;
     }
 
-    async loadTrack(
-        track: TrackMetadata,
+    async loadContent(
         file: TrackFile,
         response: StorageResolveResponse | string,
+        type: AudioType
     ) {
         let url: string;
         if (typeof response !== "string") {
@@ -42,17 +40,17 @@ export class CDNStreamer {
             url = response;
         }
 
-        if (file.format.startsWith("vorbis")) {
-            const aesKey = await this.auth.getPlayPlayKey(file.id);
+        if (file.format.startsWith("OGG")) {
+            const key = await this.client.playplay.getKey(file.id, type);
 
             try {
-                const { body } = await undici.fetch(url, { method: "GET" });
+                const { body } = await undici.request(url, { method: "GET" });
 
                 if (!body) {
                     throw new SpotifyStreamError("Could not get stream from CDN.");
                 }
 
-                const decryptStream = createPPStreamDecryptor(aesKey);
+                const decryptStream = createPPStreamDecryptor(key);
                 return pipeline(
                     body,
                     decryptStream,
@@ -66,43 +64,43 @@ export class CDNStreamer {
             } catch (error) {
                 this.stream.destroy(error as any);
             }
+        } else if (file.format.startsWith("MP3")) {
+            // file is unencrypted, download and pipe
+            let request = await undici.request(url, { method: "GET" });
+            if (request.statusCode != 200) {
+                // fallback to static URL
+                url = Endpoints.PREVIEW + file.id;
+                request = await undici.request(url, { method: "GET" });
+            }
+
+            request.body.pipe(this.stream);
+        } else {
+            throw new SpotifyStreamError("Sorry, this format is not supported yet.");
         }
     }
 }
 
 export class PlayableContentStreamer {
-    auth: Spotify;
+    client: Spotify;
     cdn: CDNStreamer;
     preload: boolean;
     stream: PassThrough;
 
     constructor(
-        auth: Spotify, 
+        client: Spotify, 
         stream: PassThrough,
         preload: boolean = false
     ) {
-        this.auth = auth;
-        this.cdn = new CDNStreamer(auth, stream);
+        this.client = client;
+        this.cdn = new CDNStreamer(client, stream);
         this.preload = preload;
         this.stream = stream;
     }
 
-    async load(
-        entity: PlayableEntity,
-        quality: SpdlAudioQuality
-    ) {
-        if (!(entity instanceof PlayableEntity)) {
-            throw new SpotifyResolveError("entity", "Entity is not instance of PlayableEntity");
-        }
-
-        if (entity instanceof TrackEntity) {
-            await this.loadTrack(entity, quality);
-        }
-    }
-
     async loadStream(
+        content: PlayableMetadata,
         file: TrackFile,
-        content: TrackMetadata
+        type: AudioType
     ) {
         if (!content) {
             throw new SpotifyStreamError("Content is unknown.");
@@ -111,33 +109,28 @@ export class PlayableContentStreamer {
         const response = await this.resolveStorage(file.id);
         switch (response.result) {
             case "CDN":
-                return await this.cdn.loadTrack(content, file, response);
+                return await this.cdn.loadContent(file, response, type);
         }
     }
 
-    async loadTrack(
-        trackLike: TrackEntity | TrackMetadata,
-        quality: SpdlAudioQuality
+    async loadContent(
+        content: PlayableMetadata,
+        options: SpdlOptions,
+        type: AudioType
     ) {
-        let track: TrackMetadata;
-        if (trackLike instanceof TrackEntity) {
-            const original = await getTrackMetadata(trackLike.toBase62(), this.auth);
-            track = original;
-        } else {
-            track = trackLike;
-        }
-
-        const file = track.files.find((f) => f.format.startsWith(quality));
+        const file = content.files.find((f) => f.format.startsWith(options.format!));
         if (!file) {
             throw new SpotifyStreamError("The track is not available in the selected quality.");
         }
 
-        return this.loadStream(file, track);
+        return this.loadStream(content, file, type);
     }
 
     private async resolveStorage(fileId: string) {
         const endpoint = this.preload ? Endpoints.STORAGE_RESOLVE_INTERACTIVE_PREFETCH : Endpoints.STORAGE_RESOLVE_INTERACTIVE;
-        const response: StorageResolveResponse = await call(`${endpoint}${fileId}?version=10000000&product=9&platform=39&alt=json`, this.auth);
+        const response: StorageResolveResponse = await this.client.request(
+            `${endpoint}${fileId}?version=10000000&product=9&platform=39&alt=json`
+        );
         if (!response) {
             throw new SpotifyStreamError("The file could not be fetched from the storage.");
         }
