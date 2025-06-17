@@ -60,7 +60,7 @@ export class PlayPlayClient {
 
             if (!isPremium) {
                 // the worst happened...
-                throw new SpotifyStreamError("Playplay token banned! Sorry :(\nUpdate @spdl/unplayplay if there is an update available.");
+                throw new SpotifyStreamError("PlayPlay token expired! Update @spdl/unplayplay if there is an update available.");
             }
         }
 
