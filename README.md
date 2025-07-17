@@ -1,17 +1,14 @@
 # node-spdl
-A lightweight Spotify downloader package.
+A lightweight Spotify downloader and API wrapper package.
 Written in Typescript, designed for Node.js, with native Node components.
 
 ![Counter](https://count.getloli.com/@:node-spdl?name=%3Anode-spdl&padding=7&offset=0&align=center&scale=1&pixelated=1&darkmode=auto)
-
-> Note: For now, only Ogg Vorbis is supported.
-> AAC (mp4) support will be added soon.
 
 ## About
 
 Unlike other similar package which rely on YouTube to extract tracks, `spdl` fetches content directly from Spotify’s servers, ensuring high-quality and non modified streams.
 
-`spdl` also acts as a lightweight wrapper around some commonly used Spotify internal APIs.
+`spdl` also acts as a lightweight wrapper around commonly used Spotify internal APIs.
 
 ### Key Features
 - Download music tracks in multiple formats and bitrates.
@@ -20,18 +17,23 @@ Unlike other similar package which rely on YouTube to extract tracks, `spdl` fet
 
 ## Requirements
 
-- Have a **valid Spotify account**.
+- Have a **valid Spotify account**
 - Get a **Spotify cookie** from your browser. (or, you can use a non-anonymous Spotify access token and skip this requirement)
 
-**Non-anonymous** token refers to an access token which is got from a Spotify Account (logged in browser).
+> A **non-anonymous** token refers to an access token which is got from a Spotify Account (logged in browser).
 A cookie is always a better option due to the fact that the access token can automatically refresh after the token expiry time.
+
+### For downloading AAC files
+- A .wvd file dumped from a device (optional).
+
+> `spdl` provides a default built-in device to decrypt AAC files without having to dump one yourself, but you can provide your own **.wvd** file if you want.
 
 ### How to get a cookie? 🍪
 This section assumes you use a Chromium-based browser but you can use any browser you like.
 
 Doesn't matter if you don't have a Spotify Premium subscription, log in with any account you prefer.
 
-1. Go to your browser and head to the **[Spotify Web Player](https://open.spotify.com)**.
+1. Go to your browser and head to the [Spotify Web Player](https://open.spotify.com).
 2. Open the **Developer tools** (with F12 or whatever). 
 3. Go to the **Application** section, next head to **Cookies** and look for "https://open.spotify.com" inside.
 4. Select that and in the list, look for the **sp_dc** cookie. 
@@ -60,7 +62,7 @@ Also note that this package is **properly typed**, so you shouldn't have any iss
 
 First, we must authenticate with the Spotify API, which can be made by providing a cookie, a non-anonymous token or creating a session with your username and password (coming soon). 
 
-Here's a short ytdl-core-like example for downloading a song to a file:
+Here's a short example for downloading a song to a file:
 
 ```js
 import { createWriteStream } from "node:fs";
@@ -72,10 +74,9 @@ async function download() {
         cookie: "sp_dc=your-cookie-here"
     });
 
+    // by default downloads an Ogg Vorbis 160kbps file
     const url = "https://open.spotify.com/track/45AepEzwUs3GjhNxhh49ip";
-    const stream = client.download(url, {
-        quality: "OGG_VORBIS_160"
-    });
+    const stream = client.download(url);
 
     stream.pipe(createWriteStream("song.ogg"));
 }
@@ -84,7 +85,7 @@ download();
 ```
 
 > [!NOTE]  
-> The ytdl-core-like syntax only works for the `spdl` function and is limited to downloads.
+> The ytdl-core-like syntax only works for the `spdl()` default function and is limited to downloads.
 > To use other API features, you must initialize a `Spotify` class instance.
 
 ## Formats
@@ -110,12 +111,8 @@ download();
 This package does not save any username or password provided and neither sends them to third party services.
 The credentials provided will only interact with the Spotify API.
 
-With **node-spdl** you are authenticating with your own account, which essentially means you are accesing your own authorized content.
-
-The user is responsible for further actions performed with it's decrypted content.
+With **node-spdl** you are authenticating with your own account, which essentially means you are accesing your own authorized content. The user is responsible for further actions performed with the decrypted content.
 If you'd like to support your favorite artists, you can always play their tracks via the [Spotify App](https://open.spotify.com).
-
-Anyways, I made this package just for fun and experimentation, please use this tool with caution.
 
 We are not related in any way with Spotify AB.
 
