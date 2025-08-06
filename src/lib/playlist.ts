@@ -21,15 +21,4 @@ export class PlaylistClient {
         const playlist = await this.client.request(`${Endpoints.PLAYLISTS}${id}`);
         return parsePlaylist(playlist);
     }
-
-    /**
-     * Gets a playlist's tracks.
-     * @param query Playlist URL or ID
-     * @returns Playlist tracks
-     */
-    public async getTracks(query: string): Promise<PlaylistTrack[]> {
-        const id = getIdFromQuery(query);
-        const podcast: any[] = await this.client.request(`${Endpoints.EPISODES}${id}`);
-        return podcast.map(parsePlaylistTrack);
-    }
 }

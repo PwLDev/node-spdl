@@ -22,12 +22,10 @@ export class PlayPlayClient {
             timestamp: Math.floor(Date.now() / 1000)
         });
 
-        const license = await this.getLicense(
-            this.client, licensePayload.finish(), fileId
-        );
-
+        const license = await this.getLicense(licensePayload.finish(), fileId);
         const challenge = PlayPlayLicenseResponse.decode(license).toJSON();
         const obfuscatedKey = Buffer.from(challenge.obfuscatedKey, "base64");
+        console.log(obfuscatedKey.toString("hex"), fileId)
         
         if (!obfuscatedKey) {
             throw new SpotifyAuthError("No PlayPlay key was provided by the response.");
@@ -42,7 +40,6 @@ export class PlayPlayClient {
     }
 
     private async getLicense(
-        client: Spotify,
         challenge: Uint8Array,
         fileId: string,
     ): Promise<Buffer> {
@@ -51,16 +48,15 @@ export class PlayPlayClient {
             {
                 method: "POST",
                 body: challenge,
-                headers: this.client.getProtoHeaders()
+                headers: this.client.getRawHeaders()
             }
-        )
+        );
 
         if (request.statusCode == 403) {
             const isPremium = await this.client.user.isPremium();
 
             if (!isPremium) {
-                // the worst happened...
-                throw new SpotifyStreamError("Playplay token banned! Sorry :(\nUpdate @spdl/unplayplay if there is an update available.");
+                throw new SpotifyStreamError("Playplay token invalid! Update @spdl/unplayplay if there is an update available and pass it to the client.");
             }
         }
 

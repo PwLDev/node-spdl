@@ -1,17 +1,17 @@
 {
-    "validUntil": "2025-07-30T09:00:00.000Z",
+    "validUntil": "2025-08-07T09:00:00.000Z",
     "secrets": [
         {
-            "secret": "rvt_!`$2fM}F5s7}T9%1;i6,M<qMP",
-            "version": 21
+            "secret": "qR@.~y>1Wl$GEVP7^UmG )-",
+            "version": 25
         },
         {
-            "secret": "87&sLG%&}B^RaN=K1:7}#wH \"A]1ZCg",
-            "version": 20
+            "secret": "L(N]nu\\-%E3U9ZIivoT{<X",
+            "version": 24
         },
         {
-            "secret": "co/X18vA4C2hue7^_K^1E$U@J<",
-            "version": 19
+            "secret": "0'Ep-k`^9(3zb|weR",
+            "version": 23
         }
     ]
 }

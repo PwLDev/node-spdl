@@ -29,13 +29,17 @@ export const spdl = (
         throw new SpotifyError("A Spotify client instance must be provided.");
     }
 
+    const client = options.client instanceof Spotify ?
+        options.client :
+        new Spotify(options.client);
+
     if (validateURL(url)) {
         const content = createSpotifyEntity(url);
         if (!(content instanceof PlayableEntity)) {
             throw new SpotifyError("An unplayable Spotify entity was provided.");
         }
 
-        downloadContentFromInfo(stream, content, options.client, options);
+        downloadContentFromInfo(stream, content, client, options);
     } else {
         stream.destroy();
         throw new SpotifyAuthError("An invalid Spotify URL was provided.");
@@ -68,7 +72,10 @@ export const downloadContentFromInfo = async (
 
     if (content instanceof TrackEntity) {
         const metadata = await client.tracks.getMetadata(content.toHex());
-        const formats = metadata.files.map((k) => k.format);
+        const formats = [
+            ...metadata.files.map((k) => k.format),
+            ...metadata.preview.map((k) => k.format)
+        ];
 
         if (!formats.includes(options.format)) {
             throw new SpotifyStreamError("Format provided is not supported by this content.");
@@ -84,8 +91,10 @@ export const downloadContentFromInfo = async (
         await feeder.loadContent(metadata, options, AudioType.AUDIO_TRACK);
     } else if (content instanceof EpisodeEntity) {
         const metadata = await client.podcasts.getMetadata(content.toHex());
-        const formats = metadata.files.map((k) => k.format);
-        console.log(metadata)
+        const formats = [
+            ...metadata.files.map((k) => k.format),
+            ...metadata.preview.map((k) => k.format)
+        ];
 
         if (!formats.includes(options.format)) {
             throw new SpotifyStreamError("Format provided is not supported by this content.");

@@ -1,4 +1,5 @@
-import { PassThrough, pipeline } from "node:stream";
+import { PassThrough, pipeline, Readable, Writable } from "node:stream";
+import { decryptStream } from "shifro";
 import undici from "undici";
 
 import { Spotify } from "./client.js";
@@ -26,22 +27,23 @@ export class CDNStreamer {
         response: StorageResolveResponse | string,
         type: AudioType
     ) {
-        let url: string;
-        if (typeof response !== "string") {
-            let filteredUrls = response.cdnurl.filter((url) => {
-                const urlObj = new URL(url)
-                return (
-                    !urlObj.hostname.includes("audio4-gm-fb") &&
-                    !urlObj.hostname.includes("audio-gm-fb")
-                )
-            });
-            url = filteredUrls[Math.floor(Math.random() * (filteredUrls.length - 1))];
-        } else {
-            url = response;
-        }
-
         if (file.format.startsWith("OGG")) {
-            const key = await this.client.playplay.getKey(file.id, type);
+            let url: string;
+            if (typeof response !== "string") {
+                let filteredUrls = response.cdnurl.filter((url) => {
+                    const urlObj = new URL(url)
+                    // these hostnames are known to have bad certs
+                    return (
+                        !urlObj.hostname.includes("audio4-gm-fb") &&
+                        !urlObj.hostname.includes("audio-gm-fb")
+                    )
+                });
+                url = filteredUrls[Math.floor(Math.random() * (filteredUrls.length - 1))];
+            } else {
+                url = response;
+            }
+
+            const key = await this.client.playplay.getKey(file.fileId, type);
 
             try {
                 const { body } = await undici.request(url, { method: "GET" });
@@ -64,12 +66,72 @@ export class CDNStreamer {
             } catch (error) {
                 this.stream.destroy(error as any);
             }
+        } else if (file.format.startsWith("MP4")) {
+            if (!this.client.widevine.device) {
+                throw new SpotifyStreamError("You need to provide a Widevine device in order to decrypt AAC (MP4) files.");
+            }
+
+            if (typeof response != "object") {
+                throw new SpotifyStreamError("Storage resolve provided an invalid result.");
+            }
+        
+            const seektable = await this.client.widevine.getSeektable(file.fileId);
+            const pssh = Buffer.from(seektable.pssh_widevine || seektable.pssh, "base64");
+
+            const key = await this.client.widevine.getKey(pssh);
+            const urls = response.cdnurl.filter((k) => k.includes("audio"));
+
+            try {
+                const stream = new Readable({ read() {} });
+
+                const offset: number = seektable["offset"];
+                const segments: number[][] = seektable["segments"];
+
+                const offsets = [[0, offset - 1]];
+                segments.map(([segment]) => {
+                    offsets.push([offsets[offsets.length - 1][1] + 1, offsets[offsets.length - 1][1] + segment]);
+                });
+
+                const positions = offsets.map((o, i) =>
+                    [urls[i % urls.length], ...o] as [string, number, number]) ;
+
+                for (const position of positions) {
+                    const [currentUrl, start, end] = position;
+
+                    const chunk = await undici.request(currentUrl, {
+                        method: "GET",
+                        headers: {
+                            range: `bytes=${start}-${end}`
+                        }
+                    });
+
+                    const content = await chunk.body.bytes();
+                    const segment = Buffer.from(new Uint8Array(content));
+
+                    stream.push(segment);
+                }
+
+                return decryptStream(
+                    Readable.toWeb(stream) as ReadableStream,
+                    Writable.toWeb(this.stream),
+                    { key }
+                );
+            } catch (error) {
+                this.stream.destroy(error as any);
+            }
         } else if (file.format.startsWith("MP3")) {
+            let url: string;
+            if (typeof response !== "string") {
+                url = response.cdnurl[Math.floor(Math.random() * (response.cdnurl.length - 1))];
+            } else {
+                url = response;
+            }
+
             // file is unencrypted, download and pipe
             let request = await undici.request(url, { method: "GET" });
             if (request.statusCode != 200) {
                 // fallback to static URL
-                url = Endpoints.PREVIEW + file.id;
+                url = Endpoints.PREVIEW + file.fileId;
                 request = await undici.request(url, { method: "GET" });
             }
 
@@ -106,7 +168,7 @@ export class PlayableContentStreamer {
             throw new SpotifyStreamError("Content is unknown.");
         }
 
-        const response = await this.resolveStorage(file.id);
+        const response = await this.resolveStorage(file.fileId);
         switch (response.result) {
             case "CDN":
                 return await this.cdn.loadContent(file, response, type);
@@ -118,7 +180,9 @@ export class PlayableContentStreamer {
         options: SpdlOptions,
         type: AudioType
     ) {
-        const file = content.files.find((f) => f.format.startsWith(options.format!));
+        const file = content.files.find((f) => f.format.startsWith(options.format!)) ||
+            content.preview?.find((f) => f.format.startsWith(options.format!));
+            
         if (!file) {
             throw new SpotifyStreamError("The track is not available in the selected quality.");
         }

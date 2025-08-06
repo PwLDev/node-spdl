@@ -1,10 +1,8 @@
-import { PassThrough, Readable } from "node:stream";
-
 import { Spotify } from "./client.js";
-import { Endpoints, Formats } from "./const.js";
-import { parseTrack, parseTrackMetadata } from "./parser.js";
+import { Endpoints } from "./const.js";
+import { parseLyrics, parseTrack, parseTrackMetadata } from "./parser.js";
 import { ColorLyrics, Track, TrackMetadata } from "./types.js";
-import { getIdFromURL, getIdFromQuery } from "./url.js";
+import { getIdFromQuery } from "./url.js";
 
 export class TrackClient {
     readonly client: Spotify;
@@ -24,9 +22,10 @@ export class TrackClient {
     }
 
     /**
-     * 
+     * Get lyrics of a track
      * @param query ID or URL of track 
      * @returns Lyrics of song
+     * @throws `404` if the track doesn't have lyrics.
      */
     public async lyrics(query: string): Promise<ColorLyrics> {
         const id = getIdFromQuery(query);
@@ -35,6 +34,6 @@ export class TrackClient {
         const request = await this.client.request(`${Endpoints.COLOR_LYRICS}${track.id}?format=json&vocalRemoval=false`);
 
         const lyrics = request["lyrics"];
-        return lyrics;
+        return parseLyrics(lyrics);
     }
 }

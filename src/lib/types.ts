@@ -1,193 +1,9 @@
 import fs from "node:fs";
 import { Spotify } from "./client.js";
 
-// base types
-export interface SpotifyObject {
-	id: string;
-	uri: string;
-	externalUrl: string;
-}
-
-export interface ExternalIds {
-	isrc?: string;
-	ean?: string;
-	upc?: string;
-}
-
-export interface Thumbnail {
-	height: number | null;
-	width: number | null;
-	url: string;
-}
-
-export interface LyricsLine {
-    startTimeMs: number;
-    words: string;
-    syllables: string[];
-    endTimeMs: number;
-}
-
-export interface Lyrics {
-    track: Track;
-    lines: LyricsLine[];
-    provider?: string;
-    language?: string;
-}
-
-export interface ColorLyrics {
-	lyrics: Lyrics;
-	colors: {
-		background: number;
-		text: number;
-		highlightText: number;
-	}
-	hasVocalRemoval: boolean;
-}
-
-export interface Album extends SpotifyObject {
-	albumType: string
-	name: string
-	artists: Artist[]
-	releaseDate: Date
-	tracks?: Track[]
-	totalTracks: number
-	coverArtwork: Thumbnail[]
-	label?: string
-	externalIds: ExternalIds
-	availableMarkets: string[]
-}
-
-export interface Artist extends SpotifyObject {
-	name: string;
-	avatar?: Thumbnail[];
-	genres?: string[];
-	followerCount?: number;
-	albums?: Album[];
-}
-
-export interface User extends SpotifyObject {
-	name?: string;
-	followerCount?: number;
-	avatar?: Thumbnail[];
-	playlists?: Playlist[];
-}
-
-export interface SelfUser extends SpotifyObject {
-    name: string | null
-	id: string
-	followerCount?: number
-	country: string
-	email: string
-	uri: string
-	plan: string
-	allowExplicit: boolean
-}
-
-export interface StorageResolveResponse {
-    cdnurl: string[];
-    result: "CDN" | "STORAGE" | "RESTRICTED" | "UNRECOGNIZED";
-    fileid: string;
-}
-
-export interface Podcast extends SpotifyObject {
-	name: string;
-	description?: string;
-	htmlDescription?: string;
-	explicit?: boolean;
-	languages?: string[];
-	mediaType: string;
-	coverArtwork: Thumbnail[];
-	publisher: string;
-	episodes?: Episode[];
-	totalEpisodes?: number;
-}
-
-export interface Episode extends SpotifyObject {
-	podcast?: Podcast;
-	description: string;
-	htmlDescription?: string;
-	durationMs: number;
-	explicit?: boolean;
-	name: string;
-	isPlayable?: boolean;
-	isPaywalled?: boolean;
-	releaseDate?: Date;
-	coverArtwork: Thumbnail[];
-	language?: string;
-	languages?: string[];
-}
-
-export interface EpisodeMetadata {
-    files: TrackFile[];
-	description: string;
-	htmlDescription?: string;
-	explicit?: boolean;
-	name: string;
-	language?: string;
-    restriction?: [{ countriesAllowed: string }, ...any];
-}
-
-export interface Track extends SpotifyObject {
-	album?: Album;
-	artists?: Artist[];
-	discNumber?: number;
-	trackNumber: number;
-	durationMs: number;
-	explicit: boolean;
-	isLocal: boolean;
-	name: string;
-	externalIds: ExternalIds;
-	isrc?: string;
-}
-
-export interface TrackCredits {
-    trackUri: string;
-    trackTitle: string;
-    roleCredits: {
-        roleTitle: string;
-        artists: {
-            uri: string;
-            name: string;
-            imageUri: string;
-            subroles: string[];
-            weight: number;
-        }[];
-    }[];
-    extendedCredits: any[];
-    sourceNames: string[];
-}
-
-export interface TrackFile {
-    id: string;
-    format: string;
-}
-
-export interface TrackMetadata {
-    files: TrackFile[];
-	hasLyrics: boolean;
-	languages: string[];
-	release: Date;
-	externalUrl: string;
-    restriction?: [{ countriesAllowed: string }, ...any];
-}
-
-export interface PlaylistTrack extends Track {
-	addedAt: Date
-	addedBy: User
-}
-
-export interface Playlist extends SpotifyObject {
-	collaborative?: boolean;
-	onProfile?: boolean;
-	description: string;
-	coverArtwork: Thumbnail[];
-	name: string;
-	owner: User;
-	tracks?: PlaylistTrack[]
-	totalTracks?: number;
-}
-
-export type SpdlFormat = "OGG_VORBIS_92" | "OGG_VORBIS_160" | "OGG_VORBIS_320" | "MP3_96" | "MP4_128" | "MP4_128_DUAL" | "MP4_256" | "MP4_256_DUAL";
+// spdl Types
+export type SpdlFormat = "OGG_VORBIS_96" | "OGG_VORBIS_160" | "OGG_VORBIS_320" | "MP3_96" | "MP4_128" | "MP4_128_DUAL" | "MP4_256" | "MP4_256_DUAL";
+export type SpdlContent = "artist" | "playlist" | "track" | "show" | "episode";
 
 export interface SpdlOptions {
     format?: SpdlFormat;
@@ -200,7 +16,7 @@ export interface SpdlOptions {
 }
 
 export interface SpdlOptionsWithClient extends SpdlOptions {
-    client: Spotify;
+    client: Spotify | SpdlClientOptions;
 }
 
 export type SpdlClientLike = SpdlClientOptions | Spotify;
@@ -208,5 +24,223 @@ export type SpdlClientLike = SpdlClientOptions | Spotify;
 export interface SpdlClientOptions {
     cookie?: string;
     accessToken?: string;
+	clientToken?: string;
     forcePremium?: boolean;
+	unplayplay?: UnPlayPlay;
+	device?: Buffer | WidevineDevice;
+}
+
+export interface SpdlFFmpegOptions {
+    path?: string;
+    verbose?: boolean;
+}
+
+export interface SpdlSearchOptions {
+    type?: SpdlContent[];
+	market?: string,
+    limit?: number;
+    offset?: number;
+}
+
+export interface UnPlayPlay {
+	token: Uint8Array | Buffer;
+	deobfuscateKey: (fileId: Buffer, dest: Buffer) => any;
+}
+
+export interface WidevineDevice {
+    type: string;
+    level: number;
+    clientId: Buffer;
+    privateKey: Buffer;
+}
+
+// Spotify API types
+export interface SpotifyObject {
+	id: string;
+	uri: string;
+	externalUrl: string;
+}
+
+export interface MetadataReference {
+	gid: string;
+	name?: string;
+}
+
+export interface Thumbnail {
+	height: number | null;
+	width: number | null;
+	url: string;
+}
+
+export interface Copyright {
+	text: string;
+	type: string;
+}
+
+export interface DateObject {
+	year: number;
+	month: number;
+	day: number;
+}
+
+export interface Restriction {
+	countriesForbidden?: string;
+	catalogue?: string[];
+}
+
+export interface Album extends SpotifyObject {
+	name: string;
+    releaseDate: Date;
+	images: Thumbnail[];
+	availableMarkets: string[];
+	artists: Artist[];
+	tracks: Track[];
+	label: string;
+	genres: string[];
+	copyright: string[];
+	popularity: number;
+}
+
+export interface AlbumMetadata {
+	gid: string;
+	name: string;
+    artist: MetadataReference[];
+    type: string,
+    label: string,
+	date: DateObject;
+    popularity: number;
+    disc: {
+		number: number;
+		track: MetadataReference[]
+	}[];
+	copyright: Copyright[];
+}
+
+export interface Artist extends SpotifyObject {
+	name: string;
+	images: Thumbnail[];
+	popularity: number;
+	followers: number;
+	genres: string[];
+}
+
+export interface ColorLyrics {
+	lyrics: {
+		syncType: string;
+		lines: Lyrics[];
+	};
+	colors: {
+		background: number;
+		text: string;
+		highlightText: number;
+	}
+}
+
+export interface Episode extends SpotifyObject {
+	name: string;
+	description: string;
+	previewUrl: string;
+	durationMs: number;
+	images: Thumbnail[];
+	isPlayable: boolean;
+	languages: string[];
+	releaseDate: Date;
+	explicit: boolean;
+	restrictions: Record<string, string>;
+	podcast: Podcast;
+}
+
+export interface EpisodeMetadata {
+	gid: string;
+	name: string;
+    files: TrackFile[];
+    preview: TrackFile[];
+	description: string;
+	explicit: boolean;
+	language: string;
+	externalUrl?: string;
+    restriction?: Restriction[];
+}
+
+export interface Lyrics {
+	startTimeMs: string;
+	endTimeMs: string;
+	words: string;
+	syllables: string[];
+}
+
+export interface Playlist extends SpotifyObject {
+	name: string;
+	description: string;
+	tracks: Track[];
+	collaborative: boolean;
+	followers: number;
+	images: Thumbnail[];
+	owner: User;
+	public: boolean;
+	snapshotId?: string;
+}
+
+export interface PlaylistTrack extends Track {
+	addedAt: Date;
+	addedBy: User;
+}
+
+export interface Podcast extends SpotifyObject {
+	episodes: Episode[];
+	name: string;
+	publisher: string;
+	description: string;
+	copyrights: Copyright[];
+	availableMarkets: string[];
+	languages: string[];
+	explicit: boolean;
+}
+
+export interface StorageResolveResponse {
+    cdnurl: string[];
+    result: "CDN" | "STORAGE" | "RESTRICTED" | "UNRECOGNIZED";
+    fileid: string;
+}
+
+export interface Track extends SpotifyObject {
+	name: string;
+	availableMarkets: string[];
+	artists: Artist[];
+	album: Album;
+	popularity: number;
+	previewUrl: string;
+	trackNumber: string;
+	discNumber: string;
+	durationMs: number;
+	isLocal: boolean;
+	explicit: boolean;
+}
+
+export interface TrackFile {
+    fileId: string;
+    format: string;
+}
+
+export interface TrackMetadata {
+	gid: string;
+	name: string;
+	album: Album;
+    files: TrackFile[];
+    preview: TrackFile[];
+	hasLyrics: boolean;
+	languages: string[];
+    restriction?: Restriction[];
+}
+
+export interface User extends SpotifyObject {
+	displayName: string;
+}
+
+export interface SelfUser extends User {
+    country: string;
+    email: string;
+    product: "free" | "premium" | "open";
+    followers: number;
+    images: Thumbnail[];
 }

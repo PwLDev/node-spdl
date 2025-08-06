@@ -1,5 +1,7 @@
+import os from "node:os";
 import { PassThrough, Readable } from "node:stream";
 import undici from "undici";
+import unplayplay from "@spdl/unplayplay";
 
 import { ArtistClient } from "./artist.js";
 import { Endpoints, AudioType, premiumFormats } from "./const.js";
@@ -11,30 +13,33 @@ import { PlayPlayClient } from "./playplay.js";
 import { PodcastClient } from "./podcast.js";
 import { getSpotifyTotp } from "./totp.js";
 import { TrackClient } from "./track.js";
-import { SpdlClientOptions, SpdlOptions } from "./types.js";
+import { SpdlClientOptions, SpdlOptions, SpdlSearchOptions } from "./types.js";
 import { validateURL } from "./url.js";
 import { UserClient } from "./user.js";
+import { WidevineClient } from "./widevine.js";
 
 /**
  * The `Spotify` class initializes a Spotify API client.
  * 
  * @param {SpdlClientOptions} options Authenticate with your Spotify account.
- * @see https://github.com/PwLDev/node-spdl?tab=readme-ov-file#how-to-get-a-cookie How to extract a sp_dc cookie.
+ * @see [How to extract an sp_dc cookie](https://github.com/PwLDev/node-spdl?tab=readme-ov-file#how-to-get-a-cookie-)
  */
 export class Spotify {
     accessToken: string = "";
-    expirationTime: string = "";
+    clientId: string = "";
+    clientToken: string = "";
     cookie: string = "";
-    expiration: number = 0;
+    accessExpiration: number = 0;
+    clientExpiration: number = 0;
     readonly options: SpdlClientOptions;
 
-    public playplay = new PlayPlayClient(this);
-    public tracks = new TrackClient(this);
-
-    public artists = new ArtistClient(this);
-    public playlists = new PlaylistClient(this);
-    public podcasts = new PodcastClient(this);
-    public user = new UserClient(this);
+    public artists: ArtistClient;
+    public playlists: PlaylistClient;
+    public playplay: PlayPlayClient;
+    public podcasts: PodcastClient;
+    public tracks: TrackClient;
+    public user: UserClient;
+    public widevine: WidevineClient;
 
     constructor(options: SpdlClientOptions) {
         if (options.accessToken) {
@@ -47,11 +52,27 @@ export class Spotify {
             }
         }
 
+        if (options.clientToken) {
+            this.clientToken = options.clientToken;
+        }
+
         if (!options.forcePremium) {
             options.forcePremium = false;
         }
 
+        if (!options.unplayplay) {
+            options.unplayplay = unplayplay;
+        }
+
         this.options = options;
+
+        this.artists = new ArtistClient(this);
+        this.playlists = new PlaylistClient(this);
+        this.playplay = new PlayPlayClient(this);
+        this.podcasts = new PodcastClient(this);
+        this.tracks = new TrackClient(this);
+        this.user = new UserClient(this);
+        this.widevine = new WidevineClient(this);
     }
 
     /**
@@ -68,8 +89,19 @@ export class Spotify {
      * ```
      */
     static async create(options: SpdlClientOptions) {
-        const instance = new this(options);
-        await instance.refresh();
+        const instance = new Spotify(options);
+
+        if (options.accessToken) {
+            instance.accessToken = options.accessToken;
+        }
+        if (options.cookie) {
+            instance.cookie = options.cookie;
+            await instance.refresh();
+        }
+        if (!options.cookie && !options.accessToken) {
+            throw new SpotifyAuthError(`A valid "sp_dc" cookie or access token must be provided.`);
+        }
+
         return instance;
     }
 
@@ -86,26 +118,39 @@ export class Spotify {
         }
     }
 
-    getProtoHeaders(): Record<string, string> {
+    getRawHeaders(): Record<string, string> {
         return {
             "Authorization": `Bearer ${this.accessToken}`,
             "Accept": "*",
             "Accept-Language": "*",
-            "Connection": "keep-alive",
-            "Content-Type": "application/json"
+            "Connection": "keep-alive"
         }
     }
 
     /**
-     * Refresh the token if expiration time expired.
+     * Refreshes and ensures the authentication tokens are valid.
      */
     public async refresh(): Promise<void> {
-        if (this.expiration > Date.now()) return;
+        const now = Date.now();
+        if (now > this.accessExpiration) {
+            await this.refreshToken();
+        }
+        if (now > this.clientExpiration) {
+            //await this.refreshClient();
+        }
+    }
 
-        const [otp, timestamp] = await getSpotifyTotp();
-        const clientTime = Date.now();
+    /**
+     * Refresh the access token if expiration time expired.
+     */
+    public async refreshToken(): Promise<void> {
+        const now = Date.now();
+        if (now < this.clientExpiration) return;
 
-        const headers = {};
+        const { otp, version } = await getSpotifyTotp();
+        const headers = {
+            "Referer": "https://open.spotify.com"
+        };
         if (this.cookie.length) {
             Object.assign(headers, { "Cookie": this.cookie });
         }
@@ -118,11 +163,9 @@ export class Spotify {
                 query: {
                     reason: "transport",
                     productType: "web-player",
-                    totp: otp.toString(),
-                    totpServer: otp.toString(),
-                    totpVer: "5",
-                    sTime: timestamp.toString(),
-                    cTime: clientTime.toString()
+                    totp: otp,
+                    totpServer: otp,
+                    totpVer: version.toString(),
                 }
             }
         );
@@ -135,11 +178,35 @@ export class Spotify {
         }
 
         this.accessToken = response["accessToken"];
+        this.clientId = response["clientId"];
 
         const expirationTime = response["accessTokenExpirationTimestampMs"];
         if (expirationTime) {
-            this.expiration = expirationTime;
+            this.accessExpiration = expirationTime;
         }
+    }
+
+    public async refreshClient(): Promise<void> {
+        const now = Date.now();
+        if (now < this.clientExpiration) return; // calling too many times auth might block the sender IP
+
+        const clientPayload = await this.getClientPayload();
+        const clientToken = await undici.request(
+            Endpoints.CLIENT_TOKEN,
+            {
+                method: "POST",
+                body: JSON.stringify(clientPayload),
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                }
+            }
+        );
+
+        const clientResponse: any = await clientToken.body.json();
+
+        this.clientToken = clientResponse["granted_token"]["token"];
+        this.clientExpiration = now + (clientResponse["granted_token"]["refresh_after_seconds"] * 1000);
     }
 
     public async request(endpoint: string): Promise<any> {
@@ -153,6 +220,58 @@ export class Spotify {
         });
 
         return await request.body.json();
+    }
+
+    private async getClientPayload() {
+        // https://github.com/brahmkshatriya/echo-spotify-extension/blob/main/ext/src/main/java/dev/brahmkshatriya/echo/extension/spotify/Authentication.kt
+        const playerJsRegex = new RegExp("https://open\\.spotifycdn\\.com/cdn/build/mobile-web-player/mobile-web-player\\..{8}\\.js");
+        const clientVersionRegex = new RegExp("clientID:\"(.{32})\",clientVersion:\"(.{10,24})\"");
+
+        const webPlayer = await undici.fetch(Endpoints.HOME_PAGE)
+            .then((r) => r.text());
+
+        const playerJsMatch = webPlayer.match(playerJsRegex);
+        if (!playerJsMatch || !playerJsMatch.length) {
+            throw new SpotifyAuthError("Failed to get the player JS.");
+        }
+
+        const headers = {
+            "Referer": "https://open.spotify.com"
+        };
+        if (this.cookie.length) {
+            Object.assign(headers, { "Cookie": this.cookie });
+        }
+        // had to use fetch because gzip was giving trouble
+        const playerJs = await undici.fetch(playerJsMatch[0], {
+            method: "GET",
+            headers
+        })
+            .then((r) => r.text());
+
+        const clientVersionMatch = playerJs.match(clientVersionRegex);
+        if (!clientVersionMatch || !clientVersionMatch.length) {
+            throw new SpotifyAuthError("Failed to get the client version.");
+        }
+
+        const clientId = clientVersionMatch[1] || this.clientId;
+        const clientVersion = clientVersionMatch[2];
+
+        this.clientId = clientId;
+
+        return {
+            client_data: {
+                client_id: clientId,
+                client_version: clientVersion,
+                js_sdk_data: {
+                    device_brand: "unknown",
+                    device_model: "unknown",
+                    os: os.platform(),
+                    os_version: os.version(),
+                    device_id: clientId,
+                    device_type: "computer"
+                }
+            },
+        }
     }
 
     /**
@@ -206,7 +325,10 @@ export class Spotify {
 
         if (content instanceof TrackEntity) {
             const metadata = await this.tracks.getMetadata(content.toHex());
-            const formats = metadata.files.map((k) => k.format);
+            const formats = [
+                ...metadata.files.map((k) => k.format),
+                ...metadata.preview.map((k) => k.format)
+            ];
 
             if (!formats.includes(options.format)) {
                 throw new SpotifyStreamError("Format provided is not supported by this content.");
@@ -223,7 +345,6 @@ export class Spotify {
         } else if (content instanceof EpisodeEntity) {
             const metadata = await this.podcasts.getMetadata(content.toHex());
             const formats = metadata.files.map((k) => k.format);
-            console.log(metadata)
 
             if (!formats.includes(options.format)) {
                 throw new SpotifyStreamError("Format provided is not supported by this content.");
@@ -238,5 +359,17 @@ export class Spotify {
 
             await feeder.loadContent(metadata, options, AudioType.AUDIO_EPISODE);
         }
+    }
+
+    public async search(query: string, options: SpdlSearchOptions = {}) {
+        const request = await undici.request(Endpoints.SEARCH, {
+            headers: this.getHeaders(),
+            method: "GET",
+            query: {
+                ...options,
+                q: query,
+                type: options.type?.length ? options.type.join(",") : undefined
+            }
+        });
     }
 }

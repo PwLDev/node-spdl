@@ -2,7 +2,7 @@
   "name": "spdl",
   "version": "1.0.0",
   "type": "module",
-  "description": "Spotify downloader written in JavaScript.",
+  "description": "Lightweight Spotify downloader and API wrapper.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
@@ -46,17 +46,15 @@
   },
   "homepage": "https://github.com/PwLDev/node-spdl#readme",
   "dependencies": {
-    "@spdl/unplayplay": "^1.0.6",
+    "@spdl/unplayplay": "^1.0.9",
+    "@spdl/widevine": "^0.3.1",
     "base-x": "^5.0.1",
-    "node-widevine": "^0.1.3",
     "protobufjs": "^7.4.0",
     "shifro": "^0.1.2",
     "undici": "^7.8.0"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
-    "rfc4648": "^1.5.4",
-    "totp-generator": "^1.0.0",
     "tsup": "^8.5.0",
     "typescript": "^5.6.3"
   }

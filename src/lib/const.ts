@@ -2,8 +2,9 @@ import { SpdlFormat } from "./types";
 
 export const Endpoints = {
     ARTISTS: "https://api.spotify.com/v1/artists/",
+    CLIENT_TOKEN: "https://clienttoken.spotify.com/v1/clienttoken",
     COLOR_LYRICS: "https://spclient.wg.spotify.com/color-lyrics/v2/track/",
-    HOME_PAGE_URL: "https://open.spotify.com/",
+    HOME_PAGE: "https://open.spotify.com/",
     EPISODES: "https://api.spotify.com/v1/episodes/",
     EPISODE_METADATA: "https://spclient.wg.spotify.com/metadata/4/episode/",
     FOLLOWED_ARTISTS_URL: "https://api.spotify.com/v1/me/following?type=artist",
@@ -13,6 +14,8 @@ export const Endpoints = {
     PREVIEW: "https://p.scdn.co/mp3-preview/",
     QUERY: "https://api-partner.spotify.com/pathfinder/v2/query",
     SAVED_TRACKS_URL: "https://api.spotify.com/v1/me/tracks/",
+    SEARCH: "https://api.spotify.com/v1/search/",
+    SEEKTABLE: "https://seektables.scdn.co/seektable/",
     SERVER_TIME: "https://open.spotify.com/api/server-time/",
     SHOWS: "https://api.spotify.com/v1/shows/",
     STORAGE_RESOLVE_INTERACTIVE: "https://spclient.wg.spotify.com/storage-resolve/files/audio/interactive/",
@@ -20,7 +23,8 @@ export const Endpoints = {
     TOKEN: "https://open.spotify.com/api/token/",
     TRACKS_URL: "https://api.spotify.com/v1/tracks/",
     TRACK_STATS: "https://api.spotify.com/v1/audio-features/",
-    TRACK_METADATA: "https://spclient.wg.spotify.com/metadata/4/track/"
+    TRACK_METADATA: "https://spclient.wg.spotify.com/metadata/4/track/",
+    WIDEVINE: "https://spclient.wg.spotify.com/widevine-license/v1/"
 }
 
 export const Codecs = {
