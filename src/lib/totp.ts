@@ -4,7 +4,7 @@ import undici from "undici";
 import { Endpoints } from "./const.js";
 
 export const getSpotifyTotp = async () => {
-    const codesUrl = "https://raw.githubusercontent.com/PwLDev/node-spdl/refs/heads/main/proto/codes.json";
+    const codesUrl = "https://git.gay/thereallo/totp-secrets/raw/branch/main/secrets/secrets.json"; // totp secrets source
     const codes: any = await undici.request(codesUrl)
         .then((r) => r.body.json());
 
