@@ -92,6 +92,7 @@ download();
 
 > [!NOTE]
 > For high quality formats, you **must have a Spotify Premium** account.
+> Lossless is not currently supported, we eventually plan to add support for it.
 
 ### Audio
 
